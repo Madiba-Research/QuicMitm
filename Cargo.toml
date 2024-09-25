@@ -1,0 +1,11 @@
+[package]
+name = "h3server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.40.0", features = ["full"]}
+rustls = "=0.23.13"
+rustls-pemfile = "2.1.3"
+quinn = "=0.11.5"
+
