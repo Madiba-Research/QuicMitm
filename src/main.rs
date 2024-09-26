@@ -1,17 +1,21 @@
-use std::net::{SocketAddr, IpAddr, Ipv4Addr};
+use std::{
+    ascii, fs, io,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    path::{self, Path, PathBuf},
+    str,
+    sync::Arc,
+};
 
-use std::{io::BufReader, sync::Arc};
-use std::fs::File;
-use quinn::{Accept, ConnectError, ConnectionError, Incoming};
-use quinn::{crypto::rustls::QuicServerConfig, Endpoint, TransportConfig};
-use tokio::net::UdpSocket;
-use rustls_pemfile;
+use anyhow::{anyhow, bail, Context, Result};
+use quinn::crypto::rustls::QuicServerConfig;
+use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
+
+
 use rustls::server::ServerConfig;
-
+use std::io::BufReader;
+use std::fs::File;
 
 use alpn::HQ29;
-
-
 
 pub mod alpn {
     // pub const H2: &[u8] = b"h2";
@@ -21,13 +25,21 @@ pub mod alpn {
 }
 
 
+fn main() {
+    let code = {
+        if let Err(e) = run() {
+            eprintln!("ERROR: {e}");
+            1
+        } else {
+            0
+        }
+    };
+    ::std::process::exit(code);
+}
+
+
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + >> {
-
-    // prepare udp
-    let socket = UdpSocket::bind("127.0.0.1:443").await?;
-
-    // set tls
+async fn run() -> Result<()> {
     let local_cert = "localTestCert.pem";
     let local_key = "localTestKey.pem";
     let server_crypto = config_tls(local_cert, local_key);
@@ -37,66 +49,121 @@ async fn main() -> Result<(), Box<dyn std::error::Error + >> {
         quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(server_crypto)?));
     let transport_config = Arc::get_mut(&mut server_config.transport).unwrap();
     transport_config.max_concurrent_uni_streams(0_u8.into());
+
+
     let endpoint =
         quinn::Endpoint::server(server_config, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443))?;
+    eprintln!("listening on {}", endpoint.local_addr()?);
 
-    println!("listening on {}", endpoint.local_addr()?);
-    loop {
-        if let Some(conn) = endpoint.accept().await {
-            let fut = handle_connection(conn);
-            tokio::spawn(async move {
-                if let Err(e) = fut.await {
-                    println!("connection failed: {reason}", reason = e.to_string())
-                }
-            });
-        }
-
+    while let Some(conn) = endpoint.accept().await {
+        
+        println!("accepting connection");
+        let fut = handle_connection(conn);
+        tokio::spawn(async move {
+            if let Err(e) = fut.await {
+                println!("connection failed: {reason}", reason = e.to_string())
+            }
+        });
     }
 
     Ok(())
 }
 
 
+async fn handle_connection(conn: quinn::Incoming) -> Result<()> {
+    let connection = conn.await?;
+
+    async {
+        println!("established");
+
+        // Each stream initiated by the client constitutes a new request.
+        loop {
+            let stream = connection.accept_bi().await;
+            let stream = match stream {
+                Err(quinn::ConnectionError::ApplicationClosed { .. }) => {
+                    println!("connection closed");
+                    return Ok(());
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+                Ok(s) => s,
+            };
+            let fut = handle_request(stream);
+            tokio::spawn(
+                async move {
+                    if let Err(e) = fut.await {
+                        println!("failed: {reason}", reason = e.to_string());
+                    }
+                }
+            );
+        }
+    }
+    .await?;
+    Ok(())
+}
 
 
-async fn handle_connection(conn: quinn::Incoming) -> Result<(), ConnectionError> {
-    if let Ok(connection) = conn.await {
-        async {
-            println!("established");
-    
-            // Each stream initiated by the client constitutes a new request.
-            loop {
-                let stream = connection.accept_bi().await;
-                let stream = match stream {
-                    Err(quinn::ConnectionError::ApplicationClosed { .. }) => {
-                        println!("connection closed");
-                        return Ok(());
-                    }
-                    Err(e) => {
-                        return Err(e);
-                    }
-                    Ok(s) => s,
-                };
-                let fut = handle_request(stream);
-                tokio::spawn(
-                    async move {
-                        if let Err(e) = fut.await {
-                            println!("failed: {reason}", reason = e.to_string());
-                        }
-                    }
-                );
+async fn handle_request(
+    (mut send, mut recv): (quinn::SendStream, quinn::RecvStream),
+) -> Result<()> {
+    let req = recv
+        .read_to_end(64 * 1024)
+        .await
+        .map_err(|e| anyhow!("failed reading request: {}", e))?;
+    let mut escaped = String::new();
+    for &x in &req[..] {
+        let part = ascii::escape_default(x).collect::<Vec<_>>();
+        escaped.push_str(str::from_utf8(&part).unwrap());
+    }
+    // Execute the request
+    let resp = process_get(&req).unwrap_or_else(|e| {
+        println!("failed: {}", e);
+        format!("failed to process request: {e}\n").into_bytes()
+    });
+    // Write the response
+    send.write_all(&resp)
+        .await
+        .map_err(|e| anyhow!("failed to send response: {}", e))?;
+    // Gracefully terminate the stream
+    send.finish().unwrap();
+    println!("complete");
+    Ok(())
+}
+
+
+
+fn process_get(x: &[u8]) -> Result<Vec<u8>> {
+    if x.len() < 4 || &x[0..4] != b"GET " {
+        bail!("missing GET");
+    }
+    if x[4..].len() < 2 || &x[x.len() - 2..] != b"\r\n" {
+        bail!("missing \\r\\n");
+    }
+    let x = &x[4..x.len() - 2];
+    let end = x.iter().position(|&c| c == b' ').unwrap_or(x.len());
+    let path = str::from_utf8(&x[..end]).context("path is malformed UTF-8")?;
+    let path = Path::new(&path);
+    let mut components = path.components();
+    match components.next() {
+        Some(path::Component::RootDir) => {}
+        _ => {
+            bail!("path must be absolute");
+        }
+    }
+    for c in components {
+        match c {
+            path::Component::Normal(x) => {
+                real_path.push(x);
+            }
+            x => {
+                bail!("illegal component in path: {:?}", x);
             }
         }
-        .await?;
-
-    } else {
-        return Ok(())
     }
-    Ok(())
+    let data = fs::read(&real_path).context("failed reading file")?;
+    Ok(data)
 }
-
-
-sync fn handle_request()
 
 
 
