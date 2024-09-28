@@ -11,7 +11,7 @@ use std::{
 // use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
 // use anyhow::Ok as OkAnyhow;
-use rustls::{server::ServerConfig, ConfigBuilder};
+use rustls::server::ServerConfig;
 use std::fs::File;
 use std::io::BufReader;
 
@@ -325,18 +325,15 @@ fn config_tls(local_cert: &str, local_key: &str) -> ServerConfig {
     .unwrap()
     .unwrap();
 
-
-    // unknown reason on dependency, try to set ring as crypto provider
-    // let mut config = ServerConfig::builder()
-    //     .with_no_client_auth()
-    //     .with_single_cert(certs, private_key)
-    //     .unwrap();
-    let mut config = ServerConfig::builder_with_provider(
-            rustls::crypto::ring::default_provider().into(),
-        )
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("default provider already set elsewhere");
+    //unknown reason on dependency, try to set ring as crypto provider
+    let mut config = ServerConfig::builder()
         .with_no_client_auth()
         .with_single_cert(certs, private_key)
         .unwrap();
+
     config.alpn_protocols = vec![HQ29.to_vec(), HTTP3.to_vec(), H2.to_vec(), HTTP1_1.to_vec()];
 
     config
