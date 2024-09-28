@@ -11,7 +11,7 @@ use std::{
 // use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
 // use anyhow::Ok as OkAnyhow;
-use rustls::server::ServerConfig;
+use rustls::{server::ServerConfig, ConfigBuilder};
 use std::fs::File;
 use std::io::BufReader;
 
@@ -70,9 +70,10 @@ where
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    std::env::set_var("RUST_BACKTRACE", "1");
+    // std::env::set_var("RUST_BACKTRACE", "1");
     let local_cert = "localTestCert.pem";
     let local_key = "localTestKey.pem";
+    
     let server_crypto = config_tls(local_cert, local_key);
  
     // for tcp usage
@@ -323,7 +324,16 @@ fn config_tls(local_cert: &str, local_key: &str) -> ServerConfig {
     ))
     .unwrap()
     .unwrap();
-    let mut config = ServerConfig::builder()
+
+
+    // unknown reason on dependency, try to set ring as crypto provider
+    // let mut config = ServerConfig::builder()
+    //     .with_no_client_auth()
+    //     .with_single_cert(certs, private_key)
+    //     .unwrap();
+    let mut config = ServerConfig::builder_with_provider(
+            rustls::crypto::ring::default_provider().into(),
+        )
         .with_no_client_auth()
         .with_single_cert(certs, private_key)
         .unwrap();
