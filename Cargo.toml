@@ -21,4 +21,12 @@ h3-quinn = "0.0.7"
 h3 = "=0.0.6"
 bytes = "1.7.2"
 http = "1.1.0"
+hyper = { version = "1.4.1", features = ["full"] }
+http-body-util = "0.1.2"
+hyper-util = { version = "0.1", features = ["full"] }
+tokio-rustls = "0.26.0"
+# Users that wish to customize the provider in use can do so when constructing ClientConfig
+# and ServerConfig instances using the with_crypto_provider method on the respective config builder types.
+# See the crypto::CryptoProvider documentation for more details.
+
 
