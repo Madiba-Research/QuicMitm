@@ -49,11 +49,16 @@ async fn hello_http1_http2(
     _: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
     
-    todo!("add alt-svc:h3 into response header");
+    let res = HyperResponse::builder()
+        .header("alt-svc",
+            "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000")
+        .body(Full::new(HyperBytes::from("hello world from h2")))
+        .unwrap();
+    Ok(res)
 
-    Ok(HyperResponse::new(Full::new(HyperBytes::from(
-        "Hello, World!",
-    ))))
+    // Ok(HyperResponse::new(Full::new(HyperBytes::from(
+    //     "Hello, World!",
+    // ))))
 }
 
 
