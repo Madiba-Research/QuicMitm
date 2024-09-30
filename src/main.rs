@@ -48,6 +48,9 @@ pub mod alpn {
 async fn hello_http1_http2(
     _: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
+    
+    todo!("add alt-svc:h3 into response header");
+
     Ok(HyperResponse::new(Full::new(HyperBytes::from(
         "Hello, World!",
     ))))
@@ -196,7 +199,7 @@ async fn handle_connection(new_conn: quinn::Incoming) {
 }
 
 async fn handle_request<T>(
-    req: Request<()>,
+    _req: Request<()>,
     mut stream: RequestStream<T, Bytes>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
