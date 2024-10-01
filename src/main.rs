@@ -3,7 +3,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     // path::{self, Path, PathBuf},
     str,
-    sync::Arc,
+    sync::Arc
 };
 
 // use anyhow::{anyhow, bail, Context, Ok, Result};
@@ -13,13 +13,13 @@ use std::{
 // use anyhow::Ok as OkAnyhow;
 use rustls::server::ServerConfig;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, prelude::*};
 
 use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{BufMut, Bytes, BytesMut};
-use http::Request;
+use http::{header::CONTENT_TYPE, Request};
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 use hyper_util::rt::TokioIo;
@@ -44,15 +44,28 @@ pub mod alpn {
     pub const HQ29: &[u8] = b"hq-29";
 }
 
+
+
+fn read_html_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
+    let mut file = File::open(path)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+    Ok(buffer)
+}
+
+
 // http task
 async fn hello_http1_http2(
     _: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
+
+    let html = read_html_file("index.html").unwrap();
     
     let res = HyperResponse::builder()
+        .header(CONTENT_TYPE, "text/html")
         .header("alt-svc",
             "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000")
-        .body(Full::new(HyperBytes::from("hello world from h2")))
+        .body(Full::new(HyperBytes::from(html)))
         .unwrap();
     Ok(res)
 
@@ -342,7 +355,7 @@ fn config_tls(local_cert: &str, local_key: &str) -> ServerConfig {
         .with_single_cert(certs, private_key)
         .unwrap();
 
-    config.alpn_protocols = vec![HQ29.to_vec(), HTTP3.to_vec(), H2.to_vec(), HTTP1_1.to_vec()];
+    config.alpn_protocols = vec![HTTP3.to_vec(), HQ29.to_vec(), H2.to_vec(), HTTP1_1.to_vec()];
 
     config
 }
