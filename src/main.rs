@@ -63,10 +63,11 @@ async fn hello_http1_http2(
     
     let res = HyperResponse::builder()
         .header(CONTENT_TYPE, "text/html")
-        .header("alt-svc",
-            "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000")
+        .header("Alt-Svc",
+            "h3=\":443\"; ma=86400")
         .body(Full::new(HyperBytes::from(html)))
         .unwrap();
+    // println!("response from http2");
     Ok(res)
 
     // Ok(HyperResponse::new(Full::new(HyperBytes::from(
