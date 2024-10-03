@@ -17,7 +17,7 @@ use rustls::server::ServerConfig;
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
-use h3::{client::new, error::ErrorLevel, quic::BidiStream, server::RequestStream};
+use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{BufMut, Bytes, BytesMut};
@@ -26,7 +26,7 @@ use http::{header::CONTENT_TYPE, Request, StatusCode};
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 use hyper_util::rt::TokioIo;
 use http_body_util::Full;
-use hyper::{body::Bytes as HyperBytes, client::conn};
+use hyper::body::Bytes as HyperBytes;
 use hyper::Method;
 use hyper::server::conn::{http1, http2};
 use hyper::service::service_fn;
@@ -35,7 +35,7 @@ use std::convert::Infallible;
 use tokio_rustls::{rustls, TlsAcceptor};
 
 use serde::Serialize;
-use serde_json;
+// use serde_json;
 
 use alpn::H2;
 use alpn::HTTP1_1;
