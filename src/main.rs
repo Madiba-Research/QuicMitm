@@ -3,13 +3,15 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     // path::{self, Path, PathBuf},
     str,
-    sync::Arc
+    sync::Arc,
+    io
 };
 
 // use anyhow::{anyhow, bail, Context, Ok, Result};
 // use quinn::crypto::rustls::QuicServerConfig;
 // use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
+use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
 use rustls::server::ServerConfig;
 use std::fs::File;
@@ -19,20 +21,23 @@ use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{BufMut, Bytes, BytesMut};
-use http::{header::CONTENT_TYPE, Request};
+use http::{header::CONTENT_TYPE, Request, StatusCode};
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 use hyper_util::rt::TokioIo;
 use http_body_util::Full;
 use hyper::body::Bytes as HyperBytes;
+use hyper::Method;
 use hyper::server::conn::{http1, http2};
 use hyper::service::service_fn;
 use hyper::{Request as HyperRequest, Response as HyperResponse};
 use std::convert::Infallible;
 use tokio_rustls::{rustls, TlsAcceptor};
 
+use serde::Serialize;
+use serde_json;
+
 use alpn::H2;
-use alpn::HQ29;
 use alpn::HTTP1_1;
 use alpn::HTTP3;
 
@@ -44,6 +49,10 @@ pub mod alpn {
     pub const HQ29: &[u8] = b"hq-29";
 }
 
+#[derive(Serialize)]
+struct JsonMsg {
+    message: String,
+}
 
 
 fn read_html_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
@@ -53,27 +62,6 @@ fn read_html_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
     Ok(buffer)
 }
 
-
-// http task
-async fn hello_http1_http2(
-    _: HyperRequest<hyper::body::Incoming>,
-) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
-
-    let html = read_html_file("index.html").unwrap();
-    
-    let res = HyperResponse::builder()
-        .header(CONTENT_TYPE, "text/html")
-        .header("Alt-Svc",
-            "h3=\":443\"; ma=86400")
-        .body(Full::new(HyperBytes::from(html)))
-        .unwrap();
-    // println!("response from http2");
-    Ok(res)
-
-    // Ok(HyperResponse::new(Full::new(HyperBytes::from(
-    //     "Hello, World!",
-    // ))))
-}
 
 
 #[derive(Clone)]
@@ -92,42 +80,37 @@ where
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    // std::env::set_var("RUST_BACKTRACE", "1");
-    let local_cert = "localTestCert.pem";
-    let local_key = "localTestKey.pem";
-    
-    let server_crypto = config_tls(local_cert, local_key);
- 
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("default provider already set elsewhere");
+     
     // for tcp usage
-    let server_crypto_clone = server_crypto.clone();
-    let tcp_tls_acceptor = TlsAcceptor::from(Arc::new(server_crypto_clone));
+    let tcp_tls_acceptor = get_h2_config()?;
     let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    println!("Tcp binding");
-    tokio::spawn(listen_tcp_request(tcp_listener, tcp_tls_acceptor));
+    println!("Tcp binding finished");
+    // tokio::spawn(listen_tcp_request(tcp_listener, tcp_tls_acceptor));
 
 
     // set tls for quic
-    let mut server_config =
-        quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(server_crypto)?));
-    let transport_config = Arc::get_mut(&mut server_config.transport).unwrap();
-    transport_config.max_concurrent_uni_streams(0_u8.into());
-
+    let server_config = get_h3_config()?;
+    // let transport_config = Arc::get_mut(&mut server_config.transport).unwrap();
+    // transport_config.max_concurrent_uni_streams(0_u8.into());
     let endpoint = quinn::Endpoint::server(
         server_config,
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
     )?;
-    println!("port binding: {}", endpoint.local_addr()?);
+    println!("Quic binding finished");
 
-    while let Some(new_conn) = endpoint.accept().await {
-        println!("accepting connection");
-        tokio::spawn(handle_connection(new_conn));
-    }
+    // set server
+    tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+    tokio::spawn(process_quic_request(endpoint));
+    
     Ok(())
 }
 
 
 
-async fn listen_tcp_request(
+async fn process_tcp_request(
     tcp_listener: TcpListener,
     tls_acceptor: TlsAcceptor
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> 
@@ -135,12 +118,20 @@ async fn listen_tcp_request(
     loop {
         let (tcp_stream, _) = tcp_listener.accept().await?;
         let acceptor_clone = tls_acceptor.clone();
-        tokio::spawn(http_response(tcp_stream, acceptor_clone));
+        tokio::spawn(h2_http_response(tcp_stream, acceptor_clone));
     }
 }
 
 
-async fn http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
+async fn process_quic_request(endpoint: Endpoint) {
+    while let Some(new_conn) = endpoint.accept().await {
+        println!("accepting connection");
+        tokio::spawn(h3_handle_connection(new_conn));
+    }
+}
+
+
+async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
     match tls_acceptor.accept(tcp_stream).await {
         Ok(tls_accepted) => {
             // let (tcp_io, tls_conn, tls_state) = tls_accepted.in_inner_all();
@@ -175,41 +166,100 @@ async fn http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
 }
 
 
+// http task
+async fn hello_http1_http2(
+    req: HyperRequest<hyper::body::Incoming>,
+) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
 
-async fn handle_connection(new_conn: quinn::Incoming) {
+    let mut res = HyperResponse::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(Full::new(HyperBytes::from("Not Found")))
+        .unwrap();
+
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
+            let html = read_html_file("index.html").unwrap();
+    
+            res = HyperResponse::builder()
+                .header(CONTENT_TYPE, "text/html")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(Full::new(HyperBytes::from(html)))
+                .unwrap();
+        }
+
+        (&Method::GET, "/testmsg") => {
+            let json_data = JsonMsg { message: String::from("Http2 API") };
+            let json_body = serde_json::to_string(&json_data).unwrap();
+            res = HyperResponse::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(Full::new(HyperBytes::from(json_body)))
+                .unwrap();
+        }
+        _ => {}
+    }
+    Ok(res)
+}
+
+
+
+async fn h3_handle_connection(new_conn: quinn::Incoming) {
     match new_conn.await {
         Ok(conn) => {
             let mut h3_conn: h3::server::Connection<h3_quinn::Connection, Bytes> =
                 h3::server::Connection::new(h3_quinn::Connection::new(conn))
                     .await
                     .unwrap();
-            loop {
+
                 match h3_conn.accept().await {
                     Ok(Some((req, stream))) => {
                         println!("new request: {:#?}", req);
 
                         tokio::spawn(async {
-                            if let Err(e) = handle_request(req, stream).await {
+                            if let Err(e) = h3_handle_request(req, stream).await {
                                 println!("handling request failed: {}", e);
                             }
                         });
                     }
-
-
                     // indicating no more streams to be received
                     Ok(None) => {
-                        break;
+                        // break;
                     }
-
                     Err(err) => {
                         println!("error on accept {}", err);
                         match err.get_error_level() {
-                            ErrorLevel::ConnectionError => break,
-                            ErrorLevel::StreamError => continue,
+                            ErrorLevel::ConnectionError => println!("ConnectionError"),
+                            ErrorLevel::StreamError => println!("StreamError"),
                         }
                     }
                 }
-            }
+            // loop {
+            //     match h3_conn.accept().await {
+            //         Ok(Some((req, stream))) => {
+            //             println!("new request: {:#?}", req);
+
+            //             tokio::spawn(async {
+            //                 if let Err(e) = handle_request(req, stream).await {
+            //                     println!("handling request failed: {}", e);
+            //                 }
+            //             });
+            //         }
+
+
+            //         // indicating no more streams to be received
+            //         Ok(None) => {
+            //             break;
+            //         }
+
+            //         Err(err) => {
+            //             println!("error on accept {}", err);
+            //             match err.get_error_level() {
+            //                 ErrorLevel::ConnectionError => break,
+            //                 ErrorLevel::StreamError => continue,
+            //             }
+            //         }
+            //     }
+            // }
         }
         Err(e) => {
             println!("quic connection failed: {}", e)
@@ -217,146 +267,109 @@ async fn handle_connection(new_conn: quinn::Incoming) {
     }
 }
 
-async fn handle_request<T>(
-    _req: Request<()>,
+
+async fn h3_handle_request<T>(
+    req: Request<()>,
     mut stream: RequestStream<T, Bytes>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     T: BidiStream<Bytes>,
 {
-    let resp = http::Response::builder().body(()).unwrap();
+    match (req.method(), req.uri().path()) {
 
-    match stream.send_response(resp).await {
-        Ok(_) => {
-            println!("successfully respond to connection");
+        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
+            let resp = HyperResponse::builder()
+                .status(200)
+                .header(CONTENT_TYPE, "text/html")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(())
+                .unwrap();
+
+            if let Ok(_) = stream.send_response(resp).await {
+                let html = read_html_file("index.html").unwrap();
+                let mut buf = BytesMut::with_capacity(4096 * 10);
+                buf.put(html.as_slice());
+                stream.send_data(buf.freeze()).await?;
+                stream.finish().await?;
+            }   
         }
-        Err(err) => {
-            println!("unable to send response to connection peer: {:?}", err);
+
+        (&Method::GET, "/testmsg") => {
+            let resp = HyperResponse::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(())
+                .unwrap();
+
+            if let Ok(_) = stream.send_response(resp).await {
+                let json_data = JsonMsg { message: String::from("Http3 API") };
+                let json_body = serde_json::to_string(&json_data).unwrap();
+                let mut buf = BytesMut::with_capacity(4096 * 10);
+                buf.put(json_body.as_bytes());
+                stream.send_data(buf.freeze()).await?; 
+                stream.finish().await?;
+            }
+        }
+
+        _ => {
+            let resp = HyperResponse::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(())
+                .unwrap();
+            if let Ok(_) = stream.send_response(resp).await {
+                stream.finish().await?;
+            }
         }
     }
 
-    let mut buf = BytesMut::with_capacity(4096 * 10);
-    buf.put(&b"Hello, world!\n"[..]);
-    stream.send_data(buf.freeze()).await?;
-
-    Ok(stream.finish().await?)
+    Ok(())
 }
 
-// async fn handle_connection(conn: quinn::Incoming) -> Result<()> {
-//     let connection = conn.await?;
 
-//     async {
-//         println!("established");
-
-//         // Each stream initiated by the client constitutes a new request.
-//         loop {
-//             let stream = connection.accept_bi().await;
-//             let stream = match stream {
-//                 Err(quinn::ConnectionError::ApplicationClosed { .. }) => {
-//                     println!("connection closed");
-//                     return Ok(());
-//                 }
-//                 Err(e) => {
-//                     return Err(e);
-//                 }
-//                 Ok(s) => s,
-//             };
-//             let fut = handle_request(stream);
-//             tokio::spawn(
-//                 async move {
-//                     if let Err(e) = fut.await {
-//                         println!("failed: {reason}", reason = e.to_string());
-//                     }
-//                 }
-//             );
-//         }
-//     }
-//     .await?;
-//     Ok(())
-// }
-
-// async fn handle_request(
-//     (mut send, mut recv): (quinn::SendStream, quinn::RecvStream),
-// ) -> Result<()> {
-//     let req = recv
-//         .read_to_end(64 * 1024)
-//         .await
-//         .map_err(|e| anyhow!("failed reading request: {}", e))?;
-//     let mut escaped = String::new();
-//     for &x in &req[..] {
-//         let part = ascii::escape_default(x).collect::<Vec<_>>();
-//         escaped.push_str(str::from_utf8(&part).unwrap());
-//     }
-//     // Execute the request
-//     let resp = process_get(&req).unwrap_or_else(|e| {
-//         println!("failed: {}", e);
-//         format!("failed to process request: {e}\n").into_bytes()
-//     });
-//     // Write the response
-//     send.write_all(&resp)
-//         .await
-//         .map_err(|e| anyhow!("failed to send response: {}", e))?;
-//     // Gracefully terminate the stream
-//     send.finish().unwrap();
-//     println!("complete");
-//     Ok(())
-// }
-
-// fn process_get(x: &[u8]) -> Result<Vec<u8>> {
-//     if x.len() < 4 || &x[0..4] != b"GET " {
-//         bail!("missing GET");
-//     }
-//     if x[4..].len() < 2 || &x[x.len() - 2..] != b"\r\n" {
-//         bail!("missing \\r\\n");
-//     }
-//     let x = &x[4..x.len() - 2];
-//     let end = x.iter().position(|&c| c == b' ').unwrap_or(x.len());
-//     let path = str::from_utf8(&x[..end]).context("path is malformed UTF-8")?;
-//     let path = Path::new(&path);
-//     let mut components = path.components();
-//     match components.next() {
-//         Some(path::Component::RootDir) => {}
-//         _ => {
-//             bail!("path must be absolute");
-//         }
-//     }
-//     for c in components {
-//         match c {
-//             path::Component::Normal(x) => {
-//                 real_path.push(x);
-//             }
-//             x => {
-//                 bail!("illegal component in path: {:?}", x);
-//             }
-//         }
-//     }
-//     let data = fs::read(&real_path).context("failed reading file")?;
-//     Ok(data)
-// }
-
-fn config_tls(local_cert: &str, local_key: &str) -> ServerConfig {
-    let cert_file = local_cert;
-    let private_key_file = local_key;
-
+fn get_h2_config() -> io::Result<TlsAcceptor> {
+    let cert_file = "localTestCert.pem";
+    let key_file = "localTestKey.pem";
     let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
     let private_key = rustls_pemfile::private_key(&mut BufReader::new(
-        &mut File::open(private_key_file).unwrap(),
+        &mut File::open(key_file).unwrap(),
     ))
-    .unwrap()
-    .unwrap();
-
-    rustls::crypto::ring::default_provider()
-        .install_default()
-        .expect("default provider already set elsewhere");
-    //unknown reason on dependency, try to set ring as crypto provider
+        .unwrap()
+        .unwrap();
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
         .with_single_cert(certs, private_key)
         .unwrap();
+    
+    config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
 
-    config.alpn_protocols = vec![HTTP3.to_vec(), HQ29.to_vec(), H2.to_vec(), HTTP1_1.to_vec()];
+    let tls_acceptor = TlsAcceptor::from(Arc::new(config));
 
-    config
+    Ok(tls_acceptor)
+}
+
+
+fn get_h3_config() -> io::Result<quinn::ServerConfig> {
+    let cert_file = "localTestCert.pem";
+    let key_file = "localTestKey.pem";
+    let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    let private_key = rustls_pemfile::private_key(&mut BufReader::new(
+        &mut File::open(key_file).unwrap(),
+    ))
+        .unwrap()
+        .unwrap();
+    let mut config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(certs, private_key)
+        .unwrap();
+    
+    config.alpn_protocols= vec![HTTP3.to_vec()];
+
+    let quinn_server_config =
+        quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(config).unwrap()));
+
+    Ok(quinn_server_config)
 }
