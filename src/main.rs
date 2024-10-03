@@ -17,7 +17,7 @@ use rustls::server::ServerConfig;
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
-use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
+use h3::{client::new, error::ErrorLevel, quic::BidiStream, server::RequestStream};
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{BufMut, Bytes, BytesMut};
@@ -26,7 +26,7 @@ use http::{header::CONTENT_TYPE, Request, StatusCode};
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 use hyper_util::rt::TokioIo;
 use http_body_util::Full;
-use hyper::body::Bytes as HyperBytes;
+use hyper::{body::Bytes as HyperBytes, client::conn};
 use hyper::Method;
 use hyper::server::conn::{http1, http2};
 use hyper::service::service_fn;
@@ -102,8 +102,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     println!("Quic binding finished");
 
     // set server
-    tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    tokio::spawn(process_quic_request(endpoint));
+    let http12_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+    let http3_task = tokio::spawn(process_quic_request(endpoint));
+    tokio::join!(http12_task, http3_task);
     
     Ok(())
 }
@@ -128,6 +129,7 @@ async fn process_quic_request(endpoint: Endpoint) {
         println!("accepting connection");
         tokio::spawn(h3_handle_connection(new_conn));
     }
+    endpoint.wait_idle().await;
 }
 
 
@@ -211,28 +213,31 @@ async fn h3_handle_connection(new_conn: quinn::Incoming) {
                     .await
                     .unwrap();
 
-                match h3_conn.accept().await {
-                    Ok(Some((req, stream))) => {
-                        println!("new request: {:#?}", req);
-
-                        tokio::spawn(async {
-                            if let Err(e) = h3_handle_request(req, stream).await {
-                                println!("handling request failed: {}", e);
+                loop {
+                    match h3_conn.accept().await {
+                        Ok(Some((req, stream))) => {
+                            println!("new request: {:#?}", req);
+    
+                            tokio::spawn(async {
+                                if let Err(e) = h3_handle_request(req, stream).await {
+                                    println!("handling request failed: {}", e);
+                                }
+                            });
+                        }
+                        // indicating no more streams to be received
+                        Ok(None) => {
+                            // break;
+                        }
+                        Err(err) => {
+                            println!("error on accept {}", err);
+                            match err.get_error_level() {
+                                ErrorLevel::ConnectionError => println!("ConnectionError"),
+                                ErrorLevel::StreamError => println!("StreamError"),
                             }
-                        });
-                    }
-                    // indicating no more streams to be received
-                    Ok(None) => {
-                        // break;
-                    }
-                    Err(err) => {
-                        println!("error on accept {}", err);
-                        match err.get_error_level() {
-                            ErrorLevel::ConnectionError => println!("ConnectionError"),
-                            ErrorLevel::StreamError => println!("StreamError"),
                         }
                     }
                 }
+                
             // loop {
             //     match h3_conn.accept().await {
             //         Ok(Some((req, stream))) => {
@@ -327,8 +332,8 @@ where
 
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
-    let cert_file = "localTestCert.pem";
-    let key_file = "localTestKey.pem";
+    let cert_file = "myservercert.pem";
+    let key_file = "myserverkey.pem";
     let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
@@ -351,8 +356,8 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
 
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
-    let cert_file = "localTestCert.pem";
-    let key_file = "localTestKey.pem";
+    let cert_file = "myservercert.pem";
+    let key_file = "myserverkey.pem";
     let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
