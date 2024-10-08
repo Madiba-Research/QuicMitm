@@ -14,6 +14,7 @@ use std::{
 use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
 use rustls::server::ServerConfig;
+use time::format_description::well_known::iso8601::Config;
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
@@ -345,11 +346,15 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
     ))
         .unwrap()
         .unwrap();
+    // let mut config = ServerConfig::builder()
+    //     .with_no_client_auth()
+    //     .with_single_cert(certs, private_key)
+    //     .unwrap();
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_single_cert(certs, private_key)
-        .unwrap();
-    
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(&cert_file, &key_file)));
+
+
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
 
     let tls_acceptor = TlsAcceptor::from(Arc::new(config));
