@@ -468,6 +468,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
+ "pem",
  "quinn",
  "rcgen",
  "rustls",

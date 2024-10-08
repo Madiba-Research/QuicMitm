@@ -14,7 +14,6 @@ use std::{
 use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
 use rustls::server::ServerConfig;
-use time::format_description::well_known::iso8601::Config;
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
@@ -338,21 +337,22 @@ where
 fn get_h2_config() -> io::Result<TlsAcceptor> {
     let cert_file = "myservercert.pem";
     let key_file = "myserverkey.pem";
-    let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    let private_key = rustls_pemfile::private_key(&mut BufReader::new(
-        &mut File::open(key_file).unwrap(),
-    ))
-        .unwrap()
-        .unwrap();
+    // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
+    //     .collect::<Result<Vec<_>, _>>()
+    //     .unwrap();
+    // let private_key = rustls_pemfile::private_key(&mut BufReader::new(
+    //     &mut File::open(key_file).unwrap(),
+    // ))
+    //     .unwrap()
+    //     .unwrap();
     // let mut config = ServerConfig::builder()
     //     .with_no_client_auth()
     //     .with_single_cert(certs, private_key)
     //     .unwrap();
+
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(&cert_file, &key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
 
 
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
@@ -366,18 +366,23 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     let cert_file = "myservercert.pem";
     let key_file = "myserverkey.pem";
-    let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    let private_key = rustls_pemfile::private_key(&mut BufReader::new(
-        &mut File::open(key_file).unwrap(),
-    ))
-        .unwrap()
-        .unwrap();
+    // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
+    //     .collect::<Result<Vec<_>, _>>()
+    //     .unwrap();
+    // let private_key = rustls_pemfile::private_key(&mut BufReader::new(
+    //     &mut File::open(key_file).unwrap(),
+    // ))
+    //     .unwrap()
+    //     .unwrap();
+    // let mut config = ServerConfig::builder()
+    //     .with_no_client_auth()
+    //     .with_single_cert(certs, private_key)
+    //     .unwrap();
+    
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_single_cert(certs, private_key)
-        .unwrap();
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
+
     
     config.alpn_protocols= vec![HTTP3.to_vec()];
 
