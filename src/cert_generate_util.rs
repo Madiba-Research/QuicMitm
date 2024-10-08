@@ -1,4 +1,7 @@
 use core::fmt;
+use std::fs::File;
+use std::io::BufReader;
+use std::ops::Deref;
 use std::{fs, sync::Arc};
 use pem::Pem;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
@@ -7,6 +10,7 @@ use rustls::server;
 use rustls::crypto::ring::sign;
 use rcgen::{Certificate, CertificateParams, DnType, Error, ExtendedKeyUsagePurpose, KeyPair, KeyUsagePurpose};
 use time::{Duration, OffsetDateTime};
+
 
 
 
@@ -35,8 +39,13 @@ impl DynamicCertResolver {
         let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
         let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
 
-        let pem_parse = pem::parse(ca_cert_pem).or(Err(Error::CouldNotParseCertificate)).unwrap();
-		let cert_der = CertificateDer::from_slice(&pem_parse.contents());
+        let cert_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .clone();
+
         let ca_pub_key_info = ca_key_pair.public_key_der();
 
         // generate cert from cert param
