@@ -39,7 +39,7 @@ impl DynamicCertResolver {
         let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
         let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
 
-        let cert_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
+        let ca_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
             .collect::<Result<Vec<_>, _>>()
             .unwrap()
             .get(0)
@@ -51,11 +51,7 @@ impl DynamicCertResolver {
         // generate cert from cert param
         // https://docs.rs/rcgen/latest/rcgen/struct.Certificate.html
         // let my_ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
-        let my_ca_cert = Certificate { 
-            params: ca_cert_param,
-            subject_public_key_info: ca_pub_key_info,
-            der: cert_der,
-        };
+        let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
         
         DynamicCertResolver {
             ca_cert: my_ca_cert,
