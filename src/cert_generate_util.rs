@@ -39,22 +39,33 @@ impl DynamicCertResolver {
         let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
         let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
 
+        println!("is ca? : {:?}", ca_cert_param.is_ca);
+        println!("serial number? : {:?}", ca_cert_param.serial_number);
+
         let ca_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
             .collect::<Result<Vec<_>, _>>()
             .unwrap()
-            .get(0)
+            .first()
             .unwrap()
             .clone();
 
-        let ca_pub_key_info = ca_key_pair.public_key_der();
+        // let ca_pub_key_info = ca_key_pair.public_key_der();
 
         // generate cert from cert param
         // https://docs.rs/rcgen/latest/rcgen/struct.Certificate.html
         // let my_ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
-        let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
+        // let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
         
+        let my_ca_cert_new = Certificate::from_der(&ca_der).unwrap();
+
+        // to check the if this cert is same as our ca cert
+        let pem_serialized = my_ca_cert_new.pem();
+        let pem = pem::parse(&pem_serialized).unwrap();
+        fs::write("newcert.pem", pem_serialized.as_bytes()).unwrap();
+
         DynamicCertResolver {
-            ca_cert: my_ca_cert,
+            // ca_cert: my_ca_cert,
+            ca_cert: my_ca_cert_new,
             ca_key: ca_key_pair,
         }
     }

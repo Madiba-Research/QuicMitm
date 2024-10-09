@@ -954,7 +954,7 @@ dependencies = [
 [[package]]
 name = "rcgen"
 version = "0.13.1"
-source = "git+https://github.com/jiangshaoqi/rcgen.git#255aedf2ca8468af627a2ba16c8c95211f61a3ef"
+source = "git+https://github.com/jiangshaoqi/rcgen.git?branch=main#604db163bda55bf454c18e6bcbbb8e96207b12d2"
 dependencies = [
  "pem",
  "ring",
