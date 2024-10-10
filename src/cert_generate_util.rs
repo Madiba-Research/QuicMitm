@@ -1,6 +1,7 @@
 use core::fmt;
 use std::fs::File;
 use std::io::BufReader;
+use std::net::Ipv4Addr;
 use std::path::Path;
 // use std::ops::Deref;
 use std::{fs, sync::Arc};
@@ -16,10 +17,11 @@ use time::{Duration, OffsetDateTime};
 
 
 fn validity_period() -> (OffsetDateTime, OffsetDateTime) {
-	let day = Duration::new(86400, 0);
-	let yesterday = OffsetDateTime::now_utc().checked_sub(day).unwrap();
-	let tomorrow = OffsetDateTime::now_utc().checked_add(day).unwrap();
-	(yesterday, tomorrow)
+	// let day = Duration::new(86400, 0);
+    let three_month = Duration::new(86400 * 30 * 3, 0);
+	let before = OffsetDateTime::now_utc().checked_sub(three_month).unwrap();
+	let after = OffsetDateTime::now_utc().checked_add(three_month).unwrap();
+	(before, after)
 }
 
 
@@ -42,16 +44,14 @@ impl DynamicCertResolver {
             panic!("CA certificate and private key have been generated, please import into browser!!!");
         }
 
+        println!("Using existed CA certificate and CA private key");
         // read ca key pem
         let ca_key_pem = fs::read_to_string(ca_key_name).unwrap();
         let ca_key_pair = KeyPair::from_pem(&ca_key_pem).unwrap();
         
         // read ca cert pem, with from_ca_cert_pem
-        let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
-        let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
-
-        println!("is ca? : {:?}", ca_cert_param.is_ca);
-        println!("serial number? : {:?}", ca_cert_param.serial_number);
+        // let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
+        // let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
 
         let ca_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
             .collect::<Result<Vec<_>, _>>()
@@ -67,7 +67,7 @@ impl DynamicCertResolver {
         // let my_ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
         // let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
         
-        let my_ca_cert_new = Certificate::from_der(&ca_der).unwrap();
+        let ca_cert = Certificate::from_der(&ca_der).unwrap();
 
         // to check the if this cert is same as our ca cert
         // let pem_serialized = my_ca_cert_new.pem();
@@ -75,8 +75,7 @@ impl DynamicCertResolver {
         // fs::write("newcert.pem", pem_serialized.as_bytes()).unwrap();
 
         DynamicCertResolver {
-            // ca_cert: my_ca_cert,
-            ca_cert: my_ca_cert_new,
+            ca_cert,
             ca_key: ca_key_pair,
         }
     }
@@ -131,21 +130,26 @@ impl server::ResolvesServerCert for DynamicCertResolver {
 fn new_ca() -> (Certificate, KeyPair) {
 	let mut params =
 		CertificateParams::new(Vec::default()).expect("empty subject alt name can't produce error");
-	let (yesterday, tomorrow) = validity_period();
+    params.subject_alt_names = vec![
+        rcgen::SanType::DnsName(rcgen::Ia5String::try_from("localhost").unwrap()),
+        rcgen::SanType::IpAddress(std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))
+        ];
+
+    let (before, after) = validity_period();
 	params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
 	params.distinguished_name.push(
 		DnType::CountryName,
-		PrintableString("BR".try_into().unwrap()),
+		PrintableString("CA".try_into().unwrap()),
 	);
 	params
 		.distinguished_name
-		.push(DnType::OrganizationName, "Crab widgits SE");
+		.push(DnType::OrganizationName, "concordia shaoqi");
 	params.key_usages.push(KeyUsagePurpose::DigitalSignature);
 	params.key_usages.push(KeyUsagePurpose::KeyCertSign);
 	params.key_usages.push(KeyUsagePurpose::CrlSign);
 
-	params.not_before = yesterday;
-	params.not_after = tomorrow;
+	params.not_before = before;
+	params.not_after = after;
 
 	let key_pair = KeyPair::generate().unwrap();
 

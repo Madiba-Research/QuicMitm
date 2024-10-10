@@ -333,8 +333,8 @@ where
 
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
-    let cert_file = "myservercert.pem";
-    let key_file = "myserverkey.pem";
+    // let cert_file = "myservercert.pem";
+    // let key_file = "myserverkey.pem";
     // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
     //     .collect::<Result<Vec<_>, _>>()
     //     .unwrap();
@@ -348,9 +348,12 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
     //     .with_single_cert(certs, private_key)
     //     .unwrap();
 
+    let ca_cert_file = "democacert.pem";
+    let ca_key_file = "democakey.pem";
+
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
 
 
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
@@ -362,8 +365,8 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
 
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
-    let cert_file = "myservercert.pem";
-    let key_file = "myserverkey.pem";
+    // let cert_file = "myservercert.pem";
+    // let key_file = "myserverkey.pem";
     // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
     //     .collect::<Result<Vec<_>, _>>()
     //     .unwrap();
@@ -376,10 +379,13 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     //     .with_no_client_auth()
     //     .with_single_cert(certs, private_key)
     //     .unwrap();
+
+    let ca_cert_file = "democacert.pem";
+    let ca_key_file = "democakey.pem";
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
 
     
     config.alpn_protocols= vec![HTTP3.to_vec()];
