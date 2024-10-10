@@ -1,14 +1,15 @@
 use core::fmt;
 use std::fs::File;
 use std::io::BufReader;
-use std::ops::Deref;
+use std::path::Path;
+// use std::ops::Deref;
 use std::{fs, sync::Arc};
-use pem::Pem;
-use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
+// use pem::Pem;
+use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
 use rustls::sign::CertifiedKey;
 use rustls::server;
 use rustls::crypto::ring::sign;
-use rcgen::{Certificate, CertificateParams, DnType, Error, ExtendedKeyUsagePurpose, KeyPair, KeyUsagePurpose};
+use rcgen::{BasicConstraints, Certificate, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, KeyPair, KeyUsagePurpose, DnValue::PrintableString,};
 use time::{Duration, OffsetDateTime};
 
 
@@ -30,6 +31,16 @@ pub struct DynamicCertResolver {
 
 impl DynamicCertResolver {
     pub fn new(ca_cert_name: &str, ca_key_name: &str) -> Self {
+
+        if !(Path::new(ca_cert_name).exists() && Path::new(ca_key_name).exists()) {
+            let (ca_cert_gen, ca_key_gen) = new_ca();
+
+            fs::write(ca_key_name, ca_key_gen.serialize_pem()).unwrap();
+            let ca_cert_gen_pem = ca_cert_gen.pem();
+            fs::write(ca_cert_name, ca_cert_gen_pem).unwrap();
+
+            panic!("CA certificate and private key have been generated, please import into browser!!!");
+        }
 
         // read ca key pem
         let ca_key_pem = fs::read_to_string(ca_key_name).unwrap();
@@ -59,9 +70,9 @@ impl DynamicCertResolver {
         let my_ca_cert_new = Certificate::from_der(&ca_der).unwrap();
 
         // to check the if this cert is same as our ca cert
-        let pem_serialized = my_ca_cert_new.pem();
-        let pem = pem::parse(&pem_serialized).unwrap();
-        fs::write("newcert.pem", pem_serialized.as_bytes()).unwrap();
+        // let pem_serialized = my_ca_cert_new.pem();
+        // let pem = pem::parse(&pem_serialized).unwrap();
+        // fs::write("newcert.pem", pem_serialized.as_bytes()).unwrap();
 
         DynamicCertResolver {
             // ca_cert: my_ca_cert,
@@ -70,10 +81,6 @@ impl DynamicCertResolver {
         }
     }
 }
-
-
-
-
 
 
 impl server::ResolvesServerCert for DynamicCertResolver {
@@ -118,6 +125,31 @@ impl server::ResolvesServerCert for DynamicCertResolver {
 
         Some(Arc::new(certified_key))
     }
+}
+
+
+fn new_ca() -> (Certificate, KeyPair) {
+	let mut params =
+		CertificateParams::new(Vec::default()).expect("empty subject alt name can't produce error");
+	let (yesterday, tomorrow) = validity_period();
+	params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
+	params.distinguished_name.push(
+		DnType::CountryName,
+		PrintableString("BR".try_into().unwrap()),
+	);
+	params
+		.distinguished_name
+		.push(DnType::OrganizationName, "Crab widgits SE");
+	params.key_usages.push(KeyUsagePurpose::DigitalSignature);
+	params.key_usages.push(KeyUsagePurpose::KeyCertSign);
+	params.key_usages.push(KeyUsagePurpose::CrlSign);
+
+	params.not_before = yesterday;
+	params.not_after = tomorrow;
+
+	let key_pair = KeyPair::generate().unwrap();
+
+	(params.self_signed(&key_pair).unwrap(), key_pair)
 }
 
 

@@ -1,90 +1,391 @@
-use std::{fs::{self, File}, io::BufReader};
-
-use rcgen::{
-	BasicConstraints, Certificate, CertificateParams, DnType, DnValue::PrintableString,
-	ExtendedKeyUsagePurpose, IsCa, KeyPair, KeyUsagePurpose,
+use std::{
+    // ascii, fs, io,
+    env, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str, sync::Arc
 };
-use time::{Duration, OffsetDateTime};
 
-/// Example demonstrating signing end-entity certificate with ca
-fn main() {
-	let (ca, ca_key) = new_ca();
-	let end_entity = new_end_entity(&ca, &ca_key);
+// use anyhow::{anyhow, bail, Context, Ok, Result};
+// use quinn::crypto::rustls::QuicServerConfig;
+// use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
-	let end_entity_pem = end_entity.pem();
-	// println!("directly signed end-entity certificate: {end_entity_pem}");
-    // let pem_end = pem::parse(&end_entity_pem).unwrap();
-    fs::write("demoendcert.pem", end_entity_pem);
+use quinn::Endpoint;
+// use anyhow::Ok as OkAnyhow;
+use rustls::server::ServerConfig;
+use std::fs::File;
+use std::io::{BufReader, prelude::*};
 
-	let ca_cert_pem = ca.pem();
-	// println!("ca certificate: {ca_cert_pem}");
-    // let pem_ca = pem::parse(&ca_cert_pem).unwrap();
-    fs::write("democacert.pem", ca_cert_pem);
+use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
+use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
-    let ca_cert_pem = fs::read_to_string("democacert.pem").unwrap();
-    let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
-    println!("is ca? : {:?}", ca_cert_param.is_ca);
-    println!("serial number? : {:?}", ca_cert_param.serial_number);
+use bytes::{BufMut, Bytes, BytesMut};
+use http::{header::CONTENT_TYPE, Request, StatusCode};
 
-    let ca_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open("democacert.pem").unwrap()))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap()
-        .first()
-        .unwrap()
-        .clone();
+use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
+use hyper_util::rt::TokioIo;
+use http_body_util::Full;
+use hyper::body::Bytes as HyperBytes;
+use hyper::Method;
+use hyper::server::conn::{http1, http2};
+use hyper::service::service_fn;
+use hyper::{Request as HyperRequest, Response as HyperResponse};
+use std::convert::Infallible;
+use tokio_rustls::{rustls, TlsAcceptor};
 
-    let my_ca_cert_new = Certificate::from_der(&ca_der).unwrap();
+use serde::Serialize;
+// use serde_json;
 
-    let pem_serialized = my_ca_cert_new.pem();
-    // let pem = pem::parse(&pem_serialized).unwrap();
-    fs::write("newdemocacert.pem", pem_serialized.as_bytes()).unwrap();
+use alpn::H2;
+use alpn::HTTP1_1;
+use alpn::HTTP3;
 
+
+pub mod alpn {
+    pub const H2: &[u8] = b"h2";
+    pub const HTTP1_1: &[u8] = b"http/1.1";
+    pub const HTTP3: &[u8] = b"h3";
+    pub const HQ29: &[u8] = b"hq-29";
 }
 
-fn new_ca() -> (Certificate, KeyPair) {
-	let mut params =
-		CertificateParams::new(Vec::default()).expect("empty subject alt name can't produce error");
-	let (yesterday, tomorrow) = validity_period();
-	params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
-	params.distinguished_name.push(
-		DnType::CountryName,
-		PrintableString("BR".try_into().unwrap()),
-	);
-	params
-		.distinguished_name
-		.push(DnType::OrganizationName, "Crab widgits SE");
-	params.key_usages.push(KeyUsagePurpose::DigitalSignature);
-	params.key_usages.push(KeyUsagePurpose::KeyCertSign);
-	params.key_usages.push(KeyUsagePurpose::CrlSign);
+mod cert_generate_util;
 
-	params.not_before = yesterday;
-	params.not_after = tomorrow;
 
-	let key_pair = KeyPair::generate().unwrap();
-
-	(params.self_signed(&key_pair).unwrap(), key_pair)
+#[derive(Serialize)]
+struct JsonMsg {
+    message: String,
 }
 
-fn new_end_entity(ca: &Certificate, ca_key: &KeyPair) -> Certificate {
-	let name = "entity.other.host";
-	let mut params = CertificateParams::new(vec![name.into()]).expect("we know the name is valid");
-	let (yesterday, tomorrow) = validity_period();
-	params.distinguished_name.push(DnType::CommonName, name);
-	params.use_authority_key_identifier_extension = true;
-	params.key_usages.push(KeyUsagePurpose::DigitalSignature);
-	params
-		.extended_key_usages
-		.push(ExtendedKeyUsagePurpose::ServerAuth);
-	params.not_before = yesterday;
-	params.not_after = tomorrow;
 
-	let key_pair = KeyPair::generate().unwrap();
-	params.signed_by(&key_pair, ca, ca_key).unwrap()
+fn read_html_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
+    let mut file = File::open(path)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+    Ok(buffer)
 }
 
-fn validity_period() -> (OffsetDateTime, OffsetDateTime) {
-	let day = Duration::new(86400, 0);
-	let yesterday = OffsetDateTime::now_utc().checked_sub(day).unwrap();
-	let tomorrow = OffsetDateTime::now_utc().checked_add(day).unwrap();
-	(yesterday, tomorrow)
+
+
+#[derive(Clone)]
+// An Executor that uses the tokio runtime.
+pub struct TokioExecutor;
+
+impl<F> hyper::rt::Executor<F> for TokioExecutor
+where
+    F: std::future::Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        tokio::task::spawn(fut);
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+    env::set_var("RUST_BACKTRACE", "1");
+
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("default provider already set elsewhere");
+     
+    // for tcp usage
+    let tcp_tls_acceptor = get_h2_config()?;
+    let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
+    println!("Tcp binding finished");
+    // tokio::spawn(listen_tcp_request(tcp_listener, tcp_tls_acceptor));
+
+
+    // set tls for quic
+    let server_config = get_h3_config()?;
+    // let transport_config = Arc::get_mut(&mut server_config.transport).unwrap();
+    // transport_config.max_concurrent_uni_streams(0_u8.into());
+    let endpoint = quinn::Endpoint::server(
+        server_config,
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
+    )?;
+    println!("Quic binding finished");
+
+    // set server
+    let http12_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+    let http3_task = tokio::spawn(process_quic_request(endpoint));
+    tokio::join!(http12_task, http3_task);
+    
+    Ok(())
+}
+
+
+
+async fn process_tcp_request(
+    tcp_listener: TcpListener,
+    tls_acceptor: TlsAcceptor
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> 
+{
+    loop {
+        let (tcp_stream, _) = tcp_listener.accept().await?;
+        let acceptor_clone = tls_acceptor.clone();
+        tokio::spawn(h2_http_response(tcp_stream, acceptor_clone));
+    }
+}
+
+
+async fn process_quic_request(endpoint: Endpoint) {
+    while let Some(new_conn) = endpoint.accept().await {
+        println!("accepting connection");
+        tokio::spawn(h3_handle_connection(new_conn));
+    }
+    endpoint.wait_idle().await;
+}
+
+
+async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
+    match tls_acceptor.accept(tcp_stream).await {
+        Ok(tls_accepted) => {
+            // let (tcp_io, tls_conn, tls_state) = tls_accepted.in_inner_all();
+            // let (_, tls_conn) = tls_accepted.get_ref();
+            let Some(alpn) = tls_accepted.get_ref().1.alpn_protocol().map(|x|x.to_vec()) else {
+                return
+            };
+            let io = TokioIo::new(tls_accepted);
+            if alpn == alpn::H2 {
+                // let tls_stream = TlsStream::new(tcp_io, tls_conn, tls_state);
+                // let io = TokioIo::new(tls_stream);
+                
+                let _ = http2::Builder::new(TokioExecutor)
+                    .serve_connection(io, service_fn(hello_http1_http2))
+                    .await;
+                
+            } else if alpn == alpn::HTTP1_1 {
+                // let tls_stream = TlsStream::new(tcp_io, tls_conn, tls_state);
+                // let io = TokioIo::new(tls_stream);
+                
+                let _ = http1::Builder::new()
+                    .serve_connection(io, service_fn(hello_http1_http2))
+                    .await;
+            } else {
+                io.into_inner().get_mut().0.shutdown();
+            }
+        }
+        Err(e) => {
+            println!("TLS accepted error: {}", e);
+        }
+    }
+}
+
+
+// http task
+async fn hello_http1_http2(
+    req: HyperRequest<hyper::body::Incoming>,
+) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
+
+    let mut res = HyperResponse::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(Full::new(HyperBytes::from("Not Found")))
+        .unwrap();
+
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
+            let html = read_html_file("index.html").unwrap();
+    
+            res = HyperResponse::builder()
+                .header(CONTENT_TYPE, "text/html")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(Full::new(HyperBytes::from(html)))
+                .unwrap();
+        }
+
+        (&Method::GET, "/testmsg") => {
+            let json_data = JsonMsg { message: String::from("Http2 API") };
+            let json_body = serde_json::to_string(&json_data).unwrap();
+            res = HyperResponse::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(Full::new(HyperBytes::from(json_body)))
+                .unwrap();
+        }
+        _ => {}
+    }
+    Ok(res)
+}
+
+
+
+async fn h3_handle_connection(new_conn: quinn::Incoming) {
+    match new_conn.await {
+        Ok(conn) => {
+            let mut h3_conn: h3::server::Connection<h3_quinn::Connection, Bytes> =
+                h3::server::Connection::new(h3_quinn::Connection::new(conn))
+                    .await
+                    .unwrap();
+
+                loop {
+                    match h3_conn.accept().await {
+                        Ok(Some((req, stream))) => {
+                            println!("new request: {:#?}", req);
+    
+                            tokio::spawn(async {
+                                if let Err(e) = h3_handle_request(req, stream).await {
+                                    println!("handling request failed: {}", e);
+                                }
+                            });
+                        }
+                        // indicating no more streams to be received
+                        Ok(None) => {
+                            // break;
+                        }
+                        Err(err) => {
+                            println!("error on accept {}", err);
+                            match err.get_error_level() {
+                                ErrorLevel::ConnectionError => println!("ConnectionError"),
+                                ErrorLevel::StreamError => println!("StreamError"),
+                            }
+                        }
+                    }
+                }
+                
+            // loop {
+            //     match h3_conn.accept().await {
+            //         Ok(Some((req, stream))) => {
+            //             println!("new request: {:#?}", req);
+
+            //             tokio::spawn(async {
+            //                 if let Err(e) = handle_request(req, stream).await {
+            //                     println!("handling request failed: {}", e);
+            //                 }
+            //             });
+            //         }
+
+
+            //         // indicating no more streams to be received
+            //         Ok(None) => {
+            //             break;
+            //         }
+
+            //         Err(err) => {
+            //             println!("error on accept {}", err);
+            //             match err.get_error_level() {
+            //                 ErrorLevel::ConnectionError => break,
+            //                 ErrorLevel::StreamError => continue,
+            //             }
+            //         }
+            //     }
+            // }
+        }
+        Err(e) => {
+            println!("quic connection failed: {}", e)
+        }
+    }
+}
+
+
+async fn h3_handle_request<T>(
+    req: Request<()>,
+    mut stream: RequestStream<T, Bytes>,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: BidiStream<Bytes>,
+{
+    match (req.method(), req.uri().path()) {
+
+        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
+            let resp = HyperResponse::builder()
+                .status(200)
+                .header(CONTENT_TYPE, "text/html")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(())
+                .unwrap();
+
+            if let Ok(_) = stream.send_response(resp).await {
+                let html = read_html_file("index.html").unwrap();
+                let mut buf = BytesMut::with_capacity(4096 * 10);
+                buf.put(html.as_slice());
+                stream.send_data(buf.freeze()).await?;
+                stream.finish().await?;
+            }   
+        }
+
+        (&Method::GET, "/testmsg") => {
+            let resp = HyperResponse::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .header("Alt-Svc", "h3=\":443\"; ma=86400")
+                .body(())
+                .unwrap();
+
+            if let Ok(_) = stream.send_response(resp).await {
+                let json_data = JsonMsg { message: String::from("Http3 API") };
+                let json_body = serde_json::to_string(&json_data).unwrap();
+                let mut buf = BytesMut::with_capacity(4096 * 10);
+                buf.put(json_body.as_bytes());
+                stream.send_data(buf.freeze()).await?; 
+                stream.finish().await?;
+            }
+        }
+
+        _ => {
+            let resp = HyperResponse::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(())
+                .unwrap();
+            if let Ok(_) = stream.send_response(resp).await {
+                stream.finish().await?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+
+fn get_h2_config() -> io::Result<TlsAcceptor> {
+    let cert_file = "myservercert.pem";
+    let key_file = "myserverkey.pem";
+    // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
+    //     .collect::<Result<Vec<_>, _>>()
+    //     .unwrap();
+    // let private_key = rustls_pemfile::private_key(&mut BufReader::new(
+    //     &mut File::open(key_file).unwrap(),
+    // ))
+    //     .unwrap()
+    //     .unwrap();
+    // let mut config = ServerConfig::builder()
+    //     .with_no_client_auth()
+    //     .with_single_cert(certs, private_key)
+    //     .unwrap();
+
+    let mut config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
+
+
+    config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
+
+    let tls_acceptor = TlsAcceptor::from(Arc::new(config));
+
+    Ok(tls_acceptor)
+}
+
+
+fn get_h3_config() -> io::Result<quinn::ServerConfig> {
+    let cert_file = "myservercert.pem";
+    let key_file = "myserverkey.pem";
+    // let certs = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(cert_file).unwrap()))
+    //     .collect::<Result<Vec<_>, _>>()
+    //     .unwrap();
+    // let private_key = rustls_pemfile::private_key(&mut BufReader::new(
+    //     &mut File::open(key_file).unwrap(),
+    // ))
+    //     .unwrap()
+    //     .unwrap();
+    // let mut config = ServerConfig::builder()
+    //     .with_no_client_auth()
+    //     .with_single_cert(certs, private_key)
+    //     .unwrap();
+    
+    let mut config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(cert_file, key_file)));
+
+    
+    config.alpn_protocols= vec![HTTP3.to_vec()];
+
+    let quinn_server_config =
+        quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(config).unwrap()));
+
+    Ok(quinn_server_config)
 }
