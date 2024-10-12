@@ -13,16 +13,16 @@ use rustls::{pki_types, server::ServerConfig};
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
-use h3::{error::ErrorLevel, quic::BidiStream, server::RequestStream};
+use h3::{client, error::ErrorLevel, quic::BidiStream, server::{self, RequestStream}};
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{BufMut, Bytes, BytesMut};
 use http::{header::CONTENT_TYPE, Request, StatusCode};
 
-use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
+use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}, stream};
 use hyper_util::rt::TokioIo;
 use http_body_util::Full;
-use hyper::body::Bytes as HyperBytes;
+use hyper::body::{Bytes as HyperBytes, Incoming};
 use hyper::Method;
 use hyper::server::conn::{http1, http2};
 use hyper::service::service_fn;
@@ -107,8 +107,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
     // set server
     let http12_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    let http3_task = tokio::spawn(process_quic_request(endpoint));
-    tokio::join!(http12_task, http3_task);
+    tokio::join!(http12_task);
+    // let http3_task = tokio::spawn(process_quic_request(endpoint));
+    // tokio::join!(http12_task, http3_task);
     
     Ok(())
 }
@@ -154,7 +155,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
                 //     .serve_connection(io, service_fn(hello_http1_http2))
                 //     .await;
                 let _ = http2::Builder::new(TokioExecutor)
-                    .serve_connection(io, service_fn(handle_proxy_htth1_http2))
+                    .serve_connection(io, service_fn(handle_proxy_http1_http2))
                     .await;
                 
             } else if alpn == alpn::HTTP1_1 {
@@ -162,7 +163,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
                 // let io = TokioIo::new(tls_stream);
                 
                 let _ = http1::Builder::new()
-                    .serve_connection(io, service_fn(hello_http1_http2))
+                    .serve_connection(io, service_fn(handle_proxy_http1_http2))
                     .await;
             } else {
                 io.into_inner().get_mut().0.shutdown();
@@ -181,15 +182,18 @@ fn host_addr(uri: &http::Uri) -> Option<String> {
     uri.authority().and_then(|auth| Some(auth.to_string()))
 }
 
-async fn tunnel(client_io: HyperRequest<hyper::body::Incoming>, server_addr: String) -> std::io::Result<()> {
+async fn tunnel(
+    client_req: HyperRequest<hyper::body::Incoming>,
+    server_addr: String,
+) -> std::result::Result<HyperResponse<hyper::body::Incoming>, Box<dyn std::error::Error + Send + Sync>> {
     // connection from request
-    let client_io = TokioIo::new(client_io);
+    // let client_io = TokioIo::new(client_io);
 
     // set to server tls connection
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
     };
-    let mut config = rustls::ClientConfig::builder()
+    let config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
     
@@ -200,93 +204,45 @@ async fn tunnel(client_io: HyperRequest<hyper::body::Incoming>, server_addr: Str
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
 
-    let mut server_tcp_stream = TcpStream::connect(server_addr_port).await?;
-    let mut server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
+    let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
+    let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
+    let server_io = TokioIo::new(server_tls_stream);
+    let (mut server_sender, _server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
+    
+    // send request to server
+    let server_res = server_sender.send_request(client_req).await?;
 
-    // 
-
-
-    Ok(())
+    Ok(server_res)
 }
 
-async fn handle_proxy_htth1_http2(
+async fn handle_proxy_http1_http2(
     req: HyperRequest<hyper::body::Incoming>,
-) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
+) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
 
     let dest_addr = host_addr(req.uri()).unwrap();
 
-    todo!("tunnel should return something that can be http response");
-    if let Err(e) = tunnel(req,dest_addr).await {
-        eprintln!("server io error: {}", e);
-    };
+    // tunneling
 
-    // build https connection to server
+    match tunnel(req, dest_addr).await {
+        Ok(server_resp) => {
+            println!("proxy received from server");
+            // type convert, make valid response
+            let status = server_resp.status();
+            let headers = server_resp.headers().clone();
 
-
-    let mut res = HyperResponse::builder()
-        .status(StatusCode::NOT_FOUND)
-        .body(Full::new(HyperBytes::from("Not Found")))
-        .unwrap();
-
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
-            let html = read_html_file("index.html").unwrap();
-
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "text/html")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(html)))
+            let mut res = HyperResponse::builder()
+                .status(server_resp.status())
+                .body(server_resp.into_body())
                 .unwrap();
-        }
-
-        (&Method::GET, "/testmsg") => {
-            let json_data = JsonMsg { message: String::from("Http2 API") };
-            let json_body = serde_json::to_string(&json_data).unwrap();
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "application/json")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(json_body)))
-                .unwrap();
-        }
-        _ => {}
+            headers.into_iter().map(|(k, v)| res.headers_mut().insert(k.unwrap(), v) );
+            Ok(res)
+        },
+        Err(e) => { 
+            println!("server io error: {}", e);
+            Err(e)
+        },
     }
-    Ok(res)
 
-}
-
-
-async fn hello_http1_http2(
-    req: HyperRequest<hyper::body::Incoming>,
-) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
-
-    let mut res = HyperResponse::builder()
-        .status(StatusCode::NOT_FOUND)
-        .body(Full::new(HyperBytes::from("Not Found")))
-        .unwrap();
-
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
-            let html = read_html_file("index.html").unwrap();
-    
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "text/html")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(html)))
-                .unwrap();
-        }
-
-        (&Method::GET, "/testmsg") => {
-            let json_data = JsonMsg { message: String::from("Http2 API") };
-            let json_body = serde_json::to_string(&json_data).unwrap();
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "application/json")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(json_body)))
-                .unwrap();
-        }
-        _ => {}
-    }
-    Ok(res)
 }
 
 
