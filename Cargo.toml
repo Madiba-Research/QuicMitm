@@ -30,9 +30,22 @@ tokio-rustls = "0.26.0"
 # See the crypto::CryptoProvider documentation for more details.
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
-# rcgen = { version = "0.13.1", features = ["pem", "x509-parser", "crypto"] }
-rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git", branch = "main", features = ["pem", "x509-parser", "crypto"] }
+rcgen = { version = "0.13.1", features = ["pem", "x509-parser", "crypto"] }
+# rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git", branch = "main", features = ["pem", "x509-parser", "crypto"] }
 time = "0.3.36"
 pem = "3.0.4"
+webpki-roots = "0.26.6"
+
+[patch.crates-io]
+rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git" }
+
+# [build-dependencies]
+# cargo-patch = "0.3"
+
+# [package.metadata.patch.rcgen]
+# version = "0.13.1"
+# patches = [
+#     "drcgen.patch"
+# ]
 
 

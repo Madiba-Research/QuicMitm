@@ -9,7 +9,7 @@ use std::{
 
 use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
-use rustls::{pki_types, server::ServerConfig};
+use rustls::server::ServerConfig;
 use std::fs::File;
 use std::io::{BufReader, prelude::*};
 
@@ -28,13 +28,10 @@ use hyper::server::conn::{http1, http2};
 use hyper::service::service_fn;
 use hyper::{Request as HyperRequest, Response as HyperResponse};
 use std::convert::Infallible;
-use tokio_rustls::{rustls, TlsAcceptor, TlsConnector};
+use tokio_rustls::{rustls, TlsAcceptor};
 
 use serde::Serialize;
 // use serde_json;
-
-use rustls::RootCertStore;
-
 
 use alpn::H2;
 use alpn::HTTP1_1;
@@ -150,11 +147,8 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
                 // let tls_stream = TlsStream::new(tcp_io, tls_conn, tls_state);
                 // let io = TokioIo::new(tls_stream);
                 
-                // let _ = http2::Builder::new(TokioExecutor)
-                //     .serve_connection(io, service_fn(hello_http1_http2))
-                //     .await;
                 let _ = http2::Builder::new(TokioExecutor)
-                    .serve_connection(io, service_fn(handle_proxy_htth1_http2))
+                    .serve_connection(io, service_fn(hello_http1_http2))
                     .await;
                 
             } else if alpn == alpn::HTTP1_1 {
@@ -176,85 +170,6 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
 
 
 // http task
-
-fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().and_then(|auth| Some(auth.to_string()))
-}
-
-async fn tunnel(client_io: HyperRequest<hyper::body::Incoming>, server_addr: String) -> std::io::Result<()> {
-    // connection from request
-    let client_io = TokioIo::new(client_io);
-
-    // set to server tls connection
-    let root_store = RootCertStore {
-        roots: webpki_roots::TLS_SERVER_ROOTS.into(),
-    };
-    let mut config = rustls::ClientConfig::builder()
-        .with_root_certificates(root_store)
-        .with_no_client_auth();
-    
-    // to server tcp, then to server tls
-    let server_addr_port = server_addr.clone() + ":443";
-    let connector = TlsConnector::from(Arc::new(config));
-    let domain = pki_types::ServerName::try_from(server_addr)
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
-        .to_owned();
-
-    let mut server_tcp_stream = TcpStream::connect(server_addr_port).await?;
-    let mut server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
-
-    // 
-
-
-    Ok(())
-}
-
-async fn handle_proxy_htth1_http2(
-    req: HyperRequest<hyper::body::Incoming>,
-) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {
-
-    let dest_addr = host_addr(req.uri()).unwrap();
-
-    todo!("tunnel should return something that can be http response");
-    if let Err(e) = tunnel(req,dest_addr).await {
-        eprintln!("server io error: {}", e);
-    };
-
-    // build https connection to server
-
-
-    let mut res = HyperResponse::builder()
-        .status(StatusCode::NOT_FOUND)
-        .body(Full::new(HyperBytes::from("Not Found")))
-        .unwrap();
-
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") | (&Method::GET, "/index.html") => {
-            let html = read_html_file("index.html").unwrap();
-
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "text/html")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(html)))
-                .unwrap();
-        }
-
-        (&Method::GET, "/testmsg") => {
-            let json_data = JsonMsg { message: String::from("Http2 API") };
-            let json_body = serde_json::to_string(&json_data).unwrap();
-            res = HyperResponse::builder()
-                .header(CONTENT_TYPE, "application/json")
-                .header("Alt-Svc", "h3=\":443\"; ma=86400")
-                .body(Full::new(HyperBytes::from(json_body)))
-                .unwrap();
-        }
-        _ => {}
-    }
-    Ok(res)
-
-}
-
-
 async fn hello_http1_http2(
     req: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Full<Bytes>>, Infallible> {

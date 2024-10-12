@@ -1,0 +1,35 @@
+Only in myrcgen: .git
+diff -crB rcgen-main/rcgen/src/certificate.rs myrcgen/rcgen/src/certificate.rs
+*** rcgen-main/rcgen/src/certificate.rs	2024-09-24 16:29:18.000000000 -0400
+--- myrcgen/rcgen/src/certificate.rs	2024-10-11 12:48:29.560495400 -0400
+***************
+*** 29,34 ****
+--- 29,55 ----
+  }
+  
+  impl Certificate {
++ 
++ 	/// Create a `Certificate` from a DER encoded certificate.
++ 	#[cfg(feature = "x509-parser")]
++ 	pub fn from_der(der: &[u8]) -> Result<Self, Error> {
++     	use x509_parser::prelude::{FromDer, X509Certificate};
++ 
++ 		let der = der.to_owned().into();
++ 		let params = CertificateParams::from_ca_cert_der(&der)?;
++ 		let (_, x509_cert) = X509Certificate::from_der(&der).unwrap();
++ 
++ 		let x509_spki_der = x509_cert.public_key().raw.to_vec();
++ 
++ 		// let subj = crate::SubjectPublicKeyInfo::from_der(x509_spki_der)?;
++ 		Ok(Certificate {
++ 			params,
++ 			// subject_public_key_info: subj.subject_public_key,
++ 			subject_public_key_info: x509_spki_der,
++ 			der,
++ 		})
++ 	}
++ 
+  	/// Returns the certificate parameters
+  	pub fn params(&self) -> &CertificateParams {
+  		&self.params
+Only in myrcgen: target

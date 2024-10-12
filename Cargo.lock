@@ -478,6 +478,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-rustls",
+ "webpki-roots",
 ]
 
 [[package]]
@@ -954,7 +955,7 @@ dependencies = [
 [[package]]
 name = "rcgen"
 version = "0.13.1"
-source = "git+https://github.com/jiangshaoqi/rcgen.git?branch=main#604db163bda55bf454c18e6bcbbb8e96207b12d2"
+source = "git+https://github.com/jiangshaoqi/rcgen.git#7d388afe36ba95921d1907e04dc06a2d9d43c43f"
 dependencies = [
  "pem",
  "ring",
@@ -1395,6 +1396,15 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "webpki-roots"
+version = "0.26.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "841c67bff177718f1d4dfefde8d8f0e78f9b6589319ba88312f567fc5841a958"
+dependencies = [
+ "rustls-pki-types",
+]
 
 [[package]]
 name = "which"
