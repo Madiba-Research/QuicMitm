@@ -21,7 +21,7 @@ use http::{header::CONTENT_TYPE, Request, StatusCode};
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}, stream};
 use hyper_util::rt::TokioIo;
-use http_body_util::Full;
+use http_body_util::{BodyExt, Empty, Full};
 use hyper::body::{Bytes as HyperBytes, Incoming};
 use hyper::Method;
 use hyper::server::conn::{http1, http2};
@@ -154,6 +154,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
                 // let _ = http2::Builder::new(TokioExecutor)
                 //     .serve_connection(io, service_fn(hello_http1_http2))
                 //     .await;
+                println!("processed with h2");
                 let _ = http2::Builder::new(TokioExecutor)
                     .serve_connection(io, service_fn(handle_proxy_http1_http2))
                     .await;
@@ -162,6 +163,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
                 // let tls_stream = TlsStream::new(tcp_io, tls_conn, tls_state);
                 // let io = TokioIo::new(tls_stream);
                 
+                println!("processed with h2");
                 let _ = http1::Builder::new()
                     .serve_connection(io, service_fn(handle_proxy_http1_http2))
                     .await;
@@ -179,7 +181,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
 // http task
 
 fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().and_then(|auth| Some(auth.to_string()))
+    uri.authority().map(|auth| auth.to_string())
 }
 
 async fn tunnel(
@@ -198,19 +200,41 @@ async fn tunnel(
         .with_no_client_auth();
     
     // to server tcp, then to server tls
-    let server_addr_port = server_addr.clone() + ":443";
-    let connector = TlsConnector::from(Arc::new(config));
+
+    // let server_addr_port = server_addr.clone() + ":443";
+    // hardcode test www.baidu.com, 103.235.47.188
+    let server_addr_port = "103.235.47.188:443";
+    let connector: TlsConnector = TlsConnector::from(Arc::new(config));
     let domain = pki_types::ServerName::try_from(server_addr)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
 
+    
+    println!("good for domain: {:?}", domain);
+
     let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
+    println!("good for tcp");
     let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
+    println!("good for tls");
     let server_io = TokioIo::new(server_tls_stream);
-    let (mut server_sender, _server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
+    // http1
+    // let (mut server_sender, _server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
+    // http2
+    let (mut server_sender, _server_conn) = hyper::client::conn::http2::handshake(TokioExecutor, server_io).await?;
+    println!("good for handshake");
     
     // send request to server
+    // todo!("a little bit problem, got suspended at client_req");
+    // println!("client req: {:?}", client_req);
+
+    let new_req = HyperRequest::builder()
+        .method(client_req.method())
+        .uri(client_req.uri())
+        .version(client_req.version())
+        .body(Empty::<Bytes>::new())?;
+
     let server_res = server_sender.send_request(client_req).await?;
+    println!("good for server res");
 
     Ok(server_res)
 }
@@ -222,12 +246,14 @@ async fn handle_proxy_http1_http2(
     let dest_addr = host_addr(req.uri()).unwrap();
 
     // tunneling
+    let s = req.headers();
+    let b = req.body();
 
     match tunnel(req, dest_addr).await {
         Ok(server_resp) => {
             println!("proxy received from server");
             // type convert, make valid response
-            let status = server_resp.status();
+            // let status = server_resp.status();
             let headers = server_resp.headers().clone();
 
             let mut res = HyperResponse::builder()
