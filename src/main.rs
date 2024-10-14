@@ -8,7 +8,6 @@ use std::{
 // use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
 use futures::future;
-use hickory_client::{client::{Client, SyncClient}, op::DnsResponse, rr::{DNSClass, Name, RData, Record, RecordType}, serialize::binary::BinEncodable, udp::UdpClientConnection};
 use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
 use rustls::{pki_types, server::ServerConfig};
@@ -82,18 +81,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
      
     // for tcp usage
     let tcp_tls_acceptor = get_h2_config()?;
-    let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
+    // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
+    let tcp_listener = TcpListener::bind("172.30.143.77:443").await?;
     println!("Tcp binding finished");
     // tokio::spawn(listen_tcp_request(tcp_listener, tcp_tls_acceptor));
 
 
     // set tls for quic
     let server_config = get_h3_config()?;
+
+    // let mut server_config = get_h3_config()?;
+    // let mut transport_config = quinn::TransportConfig::default();
+    // transport_config.max_idle_timeout(None);
+    // let transport_config = Arc::new(transport_config);
+    // server_config.transport_config(transport_config);
+
     // let transport_config = Arc::get_mut(&mut server_config.transport).unwrap();
     // transport_config.max_concurrent_uni_streams(0_u8.into());
+
     let endpoint = quinn::Endpoint::server(
         server_config,
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
+        // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 77)), 443),
     )?;
     println!("Quic binding finished");
 
@@ -234,40 +243,17 @@ async fn tunnel_http2(
     // hardcode test www.google.com, 172.217.13.196
     // hardcode test www.baidu.com 103.235.46.96
     // let server_addr_port = "172.217.13.174:443";
+    let server_addr_port = server_domain.clone() + ":443";
 
     let connector: TlsConnector = TlsConnector::from(Arc::new(config));
     let domain = pki_types::ServerName::try_from(server_domain)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
-    let domain_str = domain.clone().to_str().into_owned();
-
-    let server_addr_option = {
-        let address = "8.8.8.8:53".parse().unwrap();
-        let conn = UdpClientConnection::new(address).unwrap();
-        todo!("change to async client: https://docs.rs/hickory-client/latest/hickory_client/client/struct.AsyncClient.html");
-        let client = SyncClient::new(conn);
-
-        let name = Name::from_str(&domain_str).unwrap();
-        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
-        let answers: &[Record] = response.answers();
-
-        if let Some(RData::A(ref ip)) = answers[0].data() {
-            Some(*ip)
-        } else {
-            println!("unexpected result for domain resolving: {}", domain_str);
-            None
-        }
-    };
-
-    let server_addr_port = server_addr_option.unwrap().to_string() + ":443";
-
-    
-    println!("good for domain: {:?}", domain);
 
     let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
-    println!("good for tcp");
+
     let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
-    println!("good for tls");
+
     let server_io = TokioIo::new(server_tls_stream);
     // todo!("there is a weird problem: i am accepting http2 as the alpn, but the hyper handshake only allow http1");
     
@@ -275,7 +261,7 @@ async fn tunnel_http2(
     let (mut server_sender, server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
     // http2
     // let (mut server_sender, server_conn) = hyper::client::conn::http2::handshake(TokioExecutor, server_io).await?;
-    println!("good for handshake");
+
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
             println!("Connection failed: {:?}", err);
@@ -321,43 +307,25 @@ async fn tunnel_http1(
     // hardcode test www.google.com, 172.217.13.196
     // hardcode test www.baidu.com 103.235.46.96
     // let server_addr_port = "172.217.13.174:443";
+
+    let server_addr_port = server_domain.clone() + ":443";
+
     let connector: TlsConnector = TlsConnector::from(Arc::new(config));
     let domain = pki_types::ServerName::try_from(server_domain)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
-    let domain_str = domain.clone().to_str().into_owned();
 
-    let server_addr_option = {
-        let address = "8.8.8.8:53".parse().unwrap();
-        let conn = UdpClientConnection::new(address).unwrap();
-        let client = SyncClient::new(conn);
-
-        let name = Name::from_str(&domain_str).unwrap();
-        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
-        let answers: &[Record] = response.answers();
-
-        if let Some(RData::A(ref ip)) = answers[0].data() {
-            Some(*ip)
-        } else {
-            println!("unexpected result for domain resolving: {}", domain_str);
-            None
-        }
-    };
-
-    let server_addr_port = server_addr_option.unwrap().to_string() + ":443";
-    
-    println!("good for domain: {:?}", domain);
 
     let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
-    println!("good for tcp");
+
     let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
-    println!("good for tls");
+
     let server_io = TokioIo::new(server_tls_stream);
     // http1
     let (mut server_sender, server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
     // http2
     // let (mut server_sender, server_conn) = hyper::client::conn::http2::handshake(TokioExecutor, server_io).await?;
-    println!("good for handshake");
+
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
             println!("Connection failed: {:?}", err);
@@ -421,6 +389,7 @@ async fn h3_handle_connection(new_conn: quinn::Incoming) {
                                 ErrorLevel::ConnectionError => println!("ConnectionError"),
                                 ErrorLevel::StreamError => println!("StreamError"),
                             }
+                            break;
                         }
                     }
                 }
@@ -460,7 +429,7 @@ where
 
     proxy_endpoint.set_default_client_config(config);
 
-    // hardcode test www.google.com, 172.217.13.196
+    // hardcode test www.google.com, 172.217.13.174
     // hardcode test www.baidu.com 103.235.46.96
 
     let domain = pki_types::ServerName::try_from(domain_dest)
@@ -468,31 +437,8 @@ where
         .to_owned();
     let domain_str = domain.clone().to_str().into_owned();
 
-    let server_addr_option = {
-        let address = "8.8.8.8:53".parse().unwrap();
-        let conn = UdpClientConnection::new(address).unwrap();
-        let client = SyncClient::new(conn);
 
-        let name = Name::from_str(&domain_str).unwrap();
-        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
-        let answers: &[Record] = response.answers();
-
-        if let Some(RData::A(ref ip)) = answers[0].data() {
-            Some(*ip)
-        } else {
-            println!("unexpected result for domain resolving: {}", domain_str);
-            None
-        }
-    };
-
-    let sa: Vec<u8> = server_addr_option
-        .unwrap()
-        .to_string()
-        .split(".")
-        .map(|s|s.parse::<u8>().unwrap())
-        .collect();
-
-    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(sa[0], sa[1], sa[2], sa[3])), 443);
+    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 217, 13, 174)), 443);
     // let dest_addr = host_addr(req.uri()).unwrap();
     let conn = proxy_endpoint.connect(server_addr, &domain_str)?.await?;
 
@@ -524,36 +470,11 @@ where
         stream.send_data(chunk.copy_to_bytes(chunk.remaining())).await?;
     }
 
-    stream.finish().await?;
+    // server_stream.finish().await?;
 
-    // let request = async move {
+    // stream.finish().await?;
 
-    //     let mut server_stream = send_request.send_request(req).await?;
-
-    //     server_stream.finish().await?;
-
-    //     println!("proxy receiving response ...");
-
-    //     let resp = server_stream.recv_response().await?;
-
-    //     stream.send_response(resp).await?;
-
-    //     while let Some(mut chunk) = server_stream.recv_data().await? {
-    //         // let mut out = tokio::io::stdout();
-    //         // out.write_all_buf(&mut chunk).await?;
-    //         // out.flush().await?;
-    //         stream.send_data(chunk.copy_to_bytes(4096 * 10)).await?;
-    //     }
-
-    //     stream.finish().await?;
-    //     Ok::<(), Box<dyn std::error::Error>>(())
-    
-    // };
-
-    // let (req_res, drive_res) = tokio::join!(request, drive);
-    // req_res?;
-    // drive_res?;
-    // proxy_endpoint.wait_idle().await;
+    // println!("stream finished");
 
     Ok(())
 

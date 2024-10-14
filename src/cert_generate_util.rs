@@ -133,7 +133,7 @@ fn new_ca() -> (Certificate, KeyPair) {
     params.subject_alt_names = vec![
         rcgen::SanType::DnsName(rcgen::Ia5String::try_from("localhost").unwrap()),
         rcgen::SanType::IpAddress(std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))
-        ];
+    ];
 
     let (before, after) = validity_period();
 	params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
