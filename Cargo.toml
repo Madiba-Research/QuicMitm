@@ -35,6 +35,7 @@ rcgen = { version = "0.13.1", features = ["pem", "x509-parser", "crypto"] }
 time = "0.3.36"
 pem = "3.0.4"
 webpki-roots = "0.26.6"
+futures = "0.3.31"
 
 [patch.crates-io]
 rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git" }
