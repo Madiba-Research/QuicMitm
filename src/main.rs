@@ -1,6 +1,6 @@
 use std::{
     // ascii, fs, io,
-    env, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str, sync::Arc
+    env, error, io::{self, ErrorKind}, net::{IpAddr, Ipv4Addr, SocketAddr}, str::{self, FromStr}, sync::Arc
 };
 
 // use anyhow::{anyhow, bail, Context, Ok, Result};
@@ -8,6 +8,7 @@ use std::{
 // use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
 use futures::future;
+use hickory_client::{client::{Client, SyncClient}, op::DnsResponse, rr::{DNSClass, Name, RData, Record, RecordType}, serialize::binary::BinEncodable, udp::UdpClientConnection};
 use quinn::Endpoint;
 // use anyhow::Ok as OkAnyhow;
 use rustls::{pki_types, server::ServerConfig};
@@ -52,6 +53,9 @@ pub mod alpn {
 mod cert_generate_util;
 
 
+fn host_addr(uri: &http::Uri) -> Option<String> {
+    uri.authority().map(|auth| auth.to_string())
+}
 
 
 #[derive(Clone)]
@@ -149,10 +153,6 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
 }
 
 
-fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().map(|auth| auth.to_string())
-}
-
 
 async fn handle_proxy_http2(
     req: HyperRequest<hyper::body::Incoming>,
@@ -188,10 +188,10 @@ async fn handle_proxy_http1(
     req: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
 
-    let dest_addr = host_addr(req.uri()).unwrap();
+    let dest_domain = host_addr(req.uri()).unwrap();
 
     // tunneling
-    match tunnel_http1(req, dest_addr).await {
+    match tunnel_http1(req, dest_domain).await {
         Ok(server_resp) => {
             println!("proxy received from server");
             
@@ -216,7 +216,7 @@ async fn handle_proxy_http1(
 
 async fn tunnel_http2(
     client_req: HyperRequest<hyper::body::Incoming>,
-    server_addr: String,
+    server_domain: String,
 ) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
     // connection from request
     // let client_io = TokioIo::new(client_io);
@@ -233,11 +233,33 @@ async fn tunnel_http2(
 
     // hardcode test www.google.com, 172.217.13.196
     // hardcode test www.baidu.com 103.235.46.96
-    let server_addr_port = "172.217.13.196:443";
+    // let server_addr_port = "172.217.13.174:443";
+
     let connector: TlsConnector = TlsConnector::from(Arc::new(config));
-    let domain = pki_types::ServerName::try_from(server_addr)
+    let domain = pki_types::ServerName::try_from(server_domain)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
+    let domain_str = domain.clone().to_str().into_owned();
+
+    let server_addr_option = {
+        let address = "8.8.8.8:53".parse().unwrap();
+        let conn = UdpClientConnection::new(address).unwrap();
+        todo!("change to async client: https://docs.rs/hickory-client/latest/hickory_client/client/struct.AsyncClient.html");
+        let client = SyncClient::new(conn);
+
+        let name = Name::from_str(&domain_str).unwrap();
+        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
+        let answers: &[Record] = response.answers();
+
+        if let Some(RData::A(ref ip)) = answers[0].data() {
+            Some(*ip)
+        } else {
+            println!("unexpected result for domain resolving: {}", domain_str);
+            None
+        }
+    };
+
+    let server_addr_port = server_addr_option.unwrap().to_string() + ":443";
 
     
     println!("good for domain: {:?}", domain);
@@ -280,7 +302,7 @@ async fn tunnel_http2(
 
 async fn tunnel_http1(
     client_req: HyperRequest<hyper::body::Incoming>,
-    server_addr: String,
+    server_domain: String,
 ) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
     // connection from request
     // let client_io = TokioIo::new(client_io);
@@ -298,12 +320,31 @@ async fn tunnel_http1(
     // let server_addr_port = server_addr.clone() + ":443";
     // hardcode test www.google.com, 172.217.13.196
     // hardcode test www.baidu.com 103.235.46.96
-    let server_addr_port = "172.217.13.196:443";
+    // let server_addr_port = "172.217.13.174:443";
     let connector: TlsConnector = TlsConnector::from(Arc::new(config));
-    let domain = pki_types::ServerName::try_from(server_addr)
+    let domain = pki_types::ServerName::try_from(server_domain)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
+    let domain_str = domain.clone().to_str().into_owned();
 
+    let server_addr_option = {
+        let address = "8.8.8.8:53".parse().unwrap();
+        let conn = UdpClientConnection::new(address).unwrap();
+        let client = SyncClient::new(conn);
+
+        let name = Name::from_str(&domain_str).unwrap();
+        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
+        let answers: &[Record] = response.answers();
+
+        if let Some(RData::A(ref ip)) = answers[0].data() {
+            Some(*ip)
+        } else {
+            println!("unexpected result for domain resolving: {}", domain_str);
+            None
+        }
+    };
+
+    let server_addr_port = server_addr_option.unwrap().to_string() + ":443";
     
     println!("good for domain: {:?}", domain);
 
@@ -361,7 +402,8 @@ async fn h3_handle_connection(new_conn: quinn::Incoming) {
                 loop {
                     match h3_conn.accept().await {
                         Ok(Some((req, stream))) => {
-                            println!("new request: {:#?}", req);
+                            // println!("new request: {:#?}", req);
+                            println!("new request on h3");
     
                             tokio::spawn(async {
                                 if let Err(e) = h3_handle_request(req, stream).await {
@@ -398,6 +440,8 @@ async fn h3_handle_request<T>(
 where
     T: BidiStream<Bytes>,
 {
+    let domain_dest = host_addr(req.uri()).unwrap();
+
     // tunneling
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
@@ -418,9 +462,39 @@ where
 
     // hardcode test www.google.com, 172.217.13.196
     // hardcode test www.baidu.com 103.235.46.96
-    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 217, 13, 196)), 443);
-    let dest_addr = host_addr(req.uri()).unwrap();
-    let conn = proxy_endpoint.connect(server_addr, &dest_addr)?.await?;
+
+    let domain = pki_types::ServerName::try_from(domain_dest)
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
+        .to_owned();
+    let domain_str = domain.clone().to_str().into_owned();
+
+    let server_addr_option = {
+        let address = "8.8.8.8:53".parse().unwrap();
+        let conn = UdpClientConnection::new(address).unwrap();
+        let client = SyncClient::new(conn);
+
+        let name = Name::from_str(&domain_str).unwrap();
+        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
+        let answers: &[Record] = response.answers();
+
+        if let Some(RData::A(ref ip)) = answers[0].data() {
+            Some(*ip)
+        } else {
+            println!("unexpected result for domain resolving: {}", domain_str);
+            None
+        }
+    };
+
+    let sa: Vec<u8> = server_addr_option
+        .unwrap()
+        .to_string()
+        .split(".")
+        .map(|s|s.parse::<u8>().unwrap())
+        .collect();
+
+    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(sa[0], sa[1], sa[2], sa[3])), 443);
+    // let dest_addr = host_addr(req.uri()).unwrap();
+    let conn = proxy_endpoint.connect(server_addr, &domain_str)?.await?;
 
     println!("Proxy to server connection established");
 
