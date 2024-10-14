@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
         .install_default()
         .expect("default provider already set elsewhere");
 
-    let url = "www.baidu.com";
+    let url = "www.google.com";
 
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
@@ -53,7 +53,8 @@ async fn main() -> Result<()> {
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
 
-    let server_tcp_stream = TcpStream::connect("www.baidu.com:443").await?;
+    // let server_tcp_stream = TcpStream::connect("www.google.com:443").await?;
+    let server_tcp_stream = TcpStream::connect("172.217.13.174:443").await?;
    
     let mut server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
 
@@ -91,9 +92,8 @@ async fn main() -> Result<()> {
     let req = Request::builder()
         .method("GET")
         .version(Version::HTTP_11)
-        .header("Host", "www.baidu.com")
+        .header("Host", "www.google.com")
         .header("Connection", "close")
-        .header("Accept-Encoding", "gzip, deflate, br, zstd")
         .body(Empty::<Bytes>::new())?;
 
     // println!("req: {:?}", req);
@@ -102,6 +102,11 @@ async fn main() -> Result<()> {
 
     println!("Response: {}", res.status());
     println!("Headers: {:#?}\n", res.headers());
+
+    let collected_body = res.into_body().collect().await?;
+    let body = collected_body.to_bytes();
+
+    print!("Body: {}", String::from_utf8_lossy(&body));
 
     Ok(())
 }
