@@ -18,7 +18,7 @@ use h3::{client, error::ErrorLevel, quic::BidiStream, server::{self, RequestStre
 use h3_quinn::quinn::{self, crypto::rustls::QuicServerConfig};
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use http::{header::CONTENT_TYPE, Request, StatusCode};
+use http::{header::{self, CONTENT_TYPE}, uri::{self, Port}, Request, StatusCode};
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}, stream};
 use hyper_util::rt::TokioIo;
@@ -52,8 +52,21 @@ pub mod alpn {
 mod cert_generate_util;
 
 
-fn host_addr(uri: &http::Uri) -> Option<String> {
-    uri.authority().map(|auth| auth.to_string())
+fn host_addr(uri: &http::Uri, header: &http::HeaderMap<http::HeaderValue>) -> Option<String> {
+    let host_auth = uri.authority().map(|auth| auth.to_string());
+
+    if let Some(str) = host_auth {
+        return Some(str);
+    }
+
+    if let Some(hv_host) = header.get("host") {
+        let str_h_ref = hv_host.to_str().unwrap();
+        let str_h = String::from(str_h_ref);
+        return Some(str_h);
+    }
+
+    println!("cannot get the host addr: {}", uri);
+    Some(uri.to_string())
 }
 
 
@@ -167,7 +180,8 @@ async fn handle_proxy_http2(
     req: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
 
-    let dest_addr = host_addr(req.uri()).unwrap();
+    println!("\nh2 req: {:?}", req);
+    let dest_addr = host_addr(req.uri(), req.headers()).unwrap();
 
     // tunneling
     match tunnel_http2(req, dest_addr).await {
@@ -197,7 +211,9 @@ async fn handle_proxy_http1(
     req: HyperRequest<hyper::body::Incoming>,
 ) -> std::result::Result<HyperResponse<Incoming>, Box<dyn std::error::Error + Send + Sync>> {
 
-    let dest_domain = host_addr(req.uri()).unwrap();
+    println!("\nh1 req: {:?}", req);
+
+    let dest_domain = host_addr(req.uri(), req.headers()).unwrap();
 
     // tunneling
     match tunnel_http1(req, dest_domain).await {
@@ -250,7 +266,7 @@ async fn tunnel_http2(
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
         .to_owned();
 
-    let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
+    let server_tcp_stream = TcpStream::connect(server_addr_port.clone()).await?;
 
     let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
 
@@ -258,16 +274,18 @@ async fn tunnel_http2(
     // todo!("there is a weird problem: i am accepting http2 as the alpn, but the hyper handshake only allow http1");
     
     // http1
-    let (mut server_sender, server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
+    // let (mut server_sender, server_conn) = hyper::client::conn::http1::handshake(server_io).await?;
     // http2
-    // let (mut server_sender, server_conn) = hyper::client::conn::http2::handshake(TokioExecutor, server_io).await?;
+    let (mut server_sender, server_conn) = hyper::client::conn::http2::handshake(TokioExecutor, server_io).await?;
 
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
+            println!("Error to server: {}", server_addr_port);
             println!("Connection failed: {:?}", err);
         }
     });
 
+    println!("Complete h2 server handshake");
 
     // let new_req = HyperRequest::builder()
     //     .method(client_req.method())
@@ -316,7 +334,7 @@ async fn tunnel_http1(
         .to_owned();
 
 
-    let server_tcp_stream = TcpStream::connect(server_addr_port).await?;
+    let server_tcp_stream = TcpStream::connect(server_addr_port.clone()).await?;
 
     let server_tls_stream = connector.connect(domain, server_tcp_stream).await?;
 
@@ -328,10 +346,12 @@ async fn tunnel_http1(
 
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
+            println!("Error to server: {}", server_addr_port);
             println!("Connection failed: {:?}", err);
         }
     });
 
+    println!("Complete h1 server handshake");
 
     // let new_req = HyperRequest::builder()
     //     .method(client_req.method())
@@ -409,7 +429,10 @@ async fn h3_handle_request<T>(
 where
     T: BidiStream<Bytes>,
 {
-    let domain_dest = host_addr(req.uri()).unwrap();
+
+    println!("\nh3 req: {:?}", req);
+
+    let domain_dest = host_addr(req.uri(), req.headers()).unwrap();
 
     // tunneling
     let root_store = RootCertStore {
@@ -438,11 +461,19 @@ where
     let domain_str = domain.clone().to_str().into_owned();
 
 
-    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 217, 13, 174)), 443);
-    // let dest_addr = host_addr(req.uri()).unwrap();
+    // let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 217, 13, 174)), 443);
+    // let dest_domain = host_addr(req.uri()).unwrap();
+    let server_uri = req.uri();
+    let server_auth = server_uri.authority().ok_or("uri must have a host")?.clone();
+    let server_port = server_auth.port_u16().unwrap_or(443);
+    let server_addr = tokio::net::lookup_host((server_auth.host(), server_port))
+        .await?
+        .next()
+        .ok_or("dns found no addresses")?;
+
     let conn = proxy_endpoint.connect(server_addr, &domain_str)?.await?;
 
-    println!("Proxy to server connection established");
+    println!("Proxy to server quic established");
 
     let quinn_conn = h3_quinn::Connection::new(conn);
     
@@ -452,6 +483,8 @@ where
         future::poll_fn(|cx| driver.poll_close(cx)).await?;
         Ok::<(), Box<dyn std::error::Error>>(())
     };
+
+    println!("Proxy to server h3 established");
 
     let mut server_stream = send_request.send_request(req).await?;
 
@@ -467,6 +500,7 @@ where
         // let mut out = tokio::io::stdout();
         // out.write_all_buf(&mut chunk).await?;
         // out.flush().await?;
+        
         stream.send_data(chunk.copy_to_bytes(chunk.remaining())).await?;
     }
 
@@ -474,57 +508,10 @@ where
 
     // stream.finish().await?;
 
-    // println!("stream finished");
+    println!("good for h3 res");
 
     Ok(())
 
-    // ===================================================================================
-    // match (req.method(), req.uri().path()) {
-
-    //     (&Method::GET, "/") | (&Method::GET, "/index.html") => {
-    //         let resp = HyperResponse::builder()
-    //             .status(200)
-    //             .header(CONTENT_TYPE, "text/html")
-    //             .header("Alt-Svc", "h3=\":443\"; ma=86400")
-    //             .body(())
-    //             .unwrap();
-
-    //         if let Ok(_) = stream.send_response(resp).await {
-    //             let html = read_html_file("index.html").unwrap();
-    //             let mut buf = BytesMut::with_capacity(4096 * 10);
-    //             buf.put(html.as_slice());
-    //             stream.send_data(buf.freeze()).await?;
-    //             stream.finish().await?;
-    //         }   
-    //     }
-
-    //     (&Method::GET, "/testmsg") => {
-    //         let resp = HyperResponse::builder()
-    //             .header(CONTENT_TYPE, "application/json")
-    //             .header("Alt-Svc", "h3=\":443\"; ma=86400")
-    //             .body(())
-    //             .unwrap();
-
-    //         if let Ok(_) = stream.send_response(resp).await {
-    //             let json_data = JsonMsg { message: String::from("Http3 API") };
-    //             let json_body = serde_json::to_string(&json_data).unwrap();
-    //             let mut buf = BytesMut::with_capacity(4096 * 10);
-    //             buf.put(json_body.as_bytes());
-    //             stream.send_data(buf.freeze()).await?; 
-    //             stream.finish().await?;
-    //         }
-    //     }
-
-    //     _ => {
-    //         let resp = HyperResponse::builder()
-    //             .status(StatusCode::NOT_FOUND)
-    //             .body(())
-    //             .unwrap();
-    //         if let Ok(_) = stream.send_response(resp).await {
-    //             stream.finish().await?;
-    //         }
-    //     }
-    // }
 }
 
 
