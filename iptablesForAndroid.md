@@ -19,5 +19,5 @@ One should explicitly set tls config alpn as http2.
 
 
 Todo:
-For now most h3 request can go through proxy but cannot be processed successfully. 
-A possible reason might be ICMP package:
+For now most h3 request can go through proxy but cannot be 100% processed successfully. 
+
