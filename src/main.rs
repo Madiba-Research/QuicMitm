@@ -250,9 +250,11 @@ async fn tunnel_http2(
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
     };
-    let config = rustls::ClientConfig::builder()
+    let mut config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
+    // very important, because http1 is default
+    config.alpn_protocols= vec![H2.to_vec()];
     
     // to server tcp, then to server tls
 

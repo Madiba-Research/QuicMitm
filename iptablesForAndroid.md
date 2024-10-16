@@ -11,4 +11,7 @@ https://github.com/Magisk-Modules-Alt-Repo/custom-certificate-authorities?tab=re
 A problem for http2 proxy to server:
 Connection failed: hyper::Error(Http2, Error { kind: GoAway(b"", FRAME_SIZE_ERROR, Library) })
 https://users.rust-lang.org/t/http2-0-frame-size-error-what-doest-that-mean/81106
+Solved:
+because http1 is default for alpn. Thus, to build http2 connection between proxy and server,
+One should explicitly set tls config alpn as http2.
 
