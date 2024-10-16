@@ -8,3 +8,7 @@ iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143
 add cacert to the phone:
 https://github.com/Magisk-Modules-Alt-Repo/custom-certificate-authorities?tab=readme-ov-file
 
+A problem for http2 proxy to server:
+Connection failed: hyper::Error(Http2, Error { kind: GoAway(b"", FRAME_SIZE_ERROR, Library) })
+https://users.rust-lang.org/t/http2-0-frame-size-error-what-doest-that-mean/81106
+
