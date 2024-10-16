@@ -169,7 +169,7 @@ async fn h2_http_response(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
             }
         }
         Err(e) => {
-            println!("TLS accepted error: {}", e);
+            println!("TLS accepted error on tcp: {}", e);
         }
     }
 }
@@ -186,7 +186,7 @@ async fn handle_proxy_http2(
     // tunneling
     match tunnel_http2(req, dest_addr).await {
         Ok(server_resp) => {
-            println!("proxy received from server");
+            println!("h2 proxy received from server");
             
             Ok(server_resp)
 
@@ -200,7 +200,7 @@ async fn handle_proxy_http2(
             // Ok(res)
         },
         Err(e) => { 
-            println!("server io error: {}", e);
+            println!("h2 server io error: {}", e);
             Err(e)
         },
     }
@@ -218,7 +218,7 @@ async fn handle_proxy_http1(
     // tunneling
     match tunnel_http1(req, dest_domain).await {
         Ok(server_resp) => {
-            println!("proxy received from server");
+            println!("h1 proxy received from server");
             
             Ok(server_resp)
 
@@ -232,7 +232,7 @@ async fn handle_proxy_http1(
             // Ok(res)
         },
         Err(e) => { 
-            println!("server io error: {}", e);
+            println!("h1 server io error: {}", e);
             Err(e)
         },
     }
@@ -282,8 +282,8 @@ async fn tunnel_http2(
 
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
-            println!("Error to server: {}", server_addr_port);
-            println!("Connection failed: {:?}", err);
+            println!("h2 Error to server: {}", server_addr_port);
+            println!("h2 Connection failed: {:?}", err);
         }
     });
 
@@ -300,7 +300,7 @@ async fn tunnel_http2(
     // let res_collected = server_res.into_body().collect().await?;
     // let res_bytes = res_collected.to_bytes();
     
-    println!("good for server res");
+    println!("h2 good for server res");
 
     Ok(server_res)
 }
@@ -348,8 +348,8 @@ async fn tunnel_http1(
 
     tokio::task::spawn(async move {
         if let Err(err) = server_conn.await {
-            println!("Error to server: {}", server_addr_port);
-            println!("Connection failed: {:?}", err);
+            println!("h1 Error to server: {}", server_addr_port);
+            println!("h1 Connection failed: {:?}", err);
         }
     });
 
@@ -366,7 +366,7 @@ async fn tunnel_http1(
     // let res_collected = server_res.into_body().collect().await?;
     // let res_bytes = res_collected.to_bytes();
     
-    println!("good for server res");
+    println!("h1 good for server res");
 
     Ok(server_res)
 }
@@ -375,7 +375,7 @@ async fn tunnel_http1(
 
 async fn process_quic_request(endpoint: Endpoint) {
     while let Some(new_conn) = endpoint.accept().await {
-        println!("accepting connection");
+        println!("quic accepting connection");
         tokio::spawn(h3_handle_connection(new_conn));
     }
     endpoint.wait_idle().await;
@@ -394,7 +394,7 @@ async fn h3_handle_connection(new_conn: quinn::Incoming) {
                         Ok(Some((req, stream))) => {
                             // println!("new request: {:#?}", req);
                             println!("new request on h3");
-    
+
                             tokio::spawn(async {
                                 if let Err(e) = h3_handle_request(req, stream).await {
                                     println!("handling request failed: {}", e);
@@ -408,8 +408,8 @@ async fn h3_handle_connection(new_conn: quinn::Incoming) {
                         Err(err) => {
                             println!("error on accept {}", err);
                             match err.get_error_level() {
-                                ErrorLevel::ConnectionError => println!("ConnectionError"),
-                                ErrorLevel::StreamError => println!("StreamError"),
+                                ErrorLevel::ConnectionError => println!("h3 ConnectionError"),
+                                ErrorLevel::StreamError => println!("h3 StreamError"),
                             }
                             break;
                         }
@@ -475,8 +475,6 @@ where
 
     let conn = proxy_endpoint.connect(server_addr, &domain_str)?.await?;
 
-    println!("Proxy to server quic established");
-
     let quinn_conn = h3_quinn::Connection::new(conn);
     
     let (mut driver, mut send_request) = h3::client::new(quinn_conn).await?;
@@ -486,31 +484,36 @@ where
         Ok::<(), Box<dyn std::error::Error>>(())
     };
 
-    println!("Proxy to server h3 established");
-
+    let req_clone = req.clone();
     let mut server_stream = send_request.send_request(req).await?;
 
     server_stream.finish().await?;
-
-    println!("proxy receiving response ...");
 
     let resp = server_stream.recv_response().await?;
 
     stream.send_response(resp).await?;
 
+
     while let Some(mut chunk) = server_stream.recv_data().await? {
+
         // let mut out = tokio::io::stdout();
         // out.write_all_buf(&mut chunk).await?;
         // out.flush().await?;
+
+        let data = chunk.copy_to_bytes(chunk.remaining());
+
+        // println!("h3 received data from server: {}", String::from_utf8_lossy(data.clone().chunk()));
+
+        stream.send_data(data).await?;
         
-        stream.send_data(chunk.copy_to_bytes(chunk.remaining())).await?;
+        // stream.send_data(chunk.copy_to_bytes(chunk.remaining())).await?;
     }
 
     // server_stream.finish().await?;
 
-    // stream.finish().await?;
+    stream.finish().await?;
 
-    println!("good for h3 res");
+    println!("good for h3 res, from req: {:?}", req_clone);
 
     Ok(())
 
