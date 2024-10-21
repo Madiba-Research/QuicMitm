@@ -31,7 +31,7 @@ where
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-
+// example of a hyper http2 client above tls
 #[tokio::main]
 async fn main() -> Result<()> {
 
@@ -115,69 +115,3 @@ async fn main() -> Result<()> {
 }
 
 
-// use core::panic;
-// use http_body_util::{combinators::BoxBody, BodyExt, Empty};
-// use hyper::body::Bytes;
-// use hyper::Request;
-// use hyper_util::rt::TokioIo;
-// use std::{net::ToSocketAddrs, sync::Arc};
-// use tokio::net::TcpStream;
-// use tokio_rustls::{rustls, TlsConnector};
-
-// #[tokio::main]
-// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//     // Set log level to TRACE to see detailed information
-//     rustls::crypto::ring::default_provider()
-//         .install_default()
-//         .expect("default provider already set elsewhere");
-
-//     let domain = "www.google.com";
-//     let uri = format!("https://{}/", domain);
-//     let target_host = match format!("{}:443", domain).to_socket_addrs() {
-//         Ok(socket_ip) => socket_ip.into_iter().next().unwrap(),
-//         Err(e) => {
-//             panic!("DNS resolution error: {}", e);
-//         }
-//     };
-
-//     let mut root_cert_store = rustls::RootCertStore::empty();
-//     root_cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
-
-//     let mut config = rustls::ClientConfig::builder()
-//         .with_root_certificates(root_cert_store)
-//         .with_no_client_auth();
-//     // config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec(), b"http/1.0".to_vec()];
-//     config.alpn_protocols = vec![b"h2".to_vec()];
-
-//     let connector = TlsConnector::from(Arc::new(config));
-//       let tcp_stream = TcpStream::connect(target_host).await?;
-//     let tls_domain = rustls_pki_types::ServerName::try_from(domain)
-//         .map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid dnsname"))?
-//         .to_owned();
-
-//     let stream = connector.connect(tls_domain, tcp_stream).await?;
-//     let io = TokioIo::new(stream);
-//     let executor = hyper_util::rt::tokio::TokioExecutor::new();
-
-//     let (mut sender, conn) = hyper::client::conn::http2::handshake(executor, io).await?;
-
-//     tokio::task::spawn(async move {
-//         if let Err(e) = conn.await {
-//             println!("Error: {:?}", e);
-//         }
-//     });
-
-//     let upstream_request = Request::builder()
-//         .uri(uri)
-//         .header("user-agent", "hyper-client-http2")
-//         .version(hyper::Version::HTTP_2)
-//         .body(Empty::<Bytes>::new())?;
-
-//     let res = sender.send_request(upstream_request).await?;
-
-
-//     let body = res.collect().await?.to_bytes();
-
-//     println!("{}", String::from_utf8_lossy(&body));
-//     Ok(())
-// }
