@@ -1,9 +1,11 @@
-use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, sync::Arc};
+use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
-use rustls::ServerConfig;
+use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
+
 use tokio::net::{TcpListener, TcpStream};
-use tokio_rustls::TlsAcceptor;
+use tokio_rustls::{TlsAcceptor, TlsConnector};
+use tokio::io::{split, copy};
 
 mod cert_generate_util;
 
@@ -64,15 +66,50 @@ async fn process_tcp_request(
 }
 
 
-async fn proxy_tcp_tls(tcp_stream: TcpStream, tls_acceptor: TlsAcceptor) {
+async fn proxy_tcp_tls(
+    tcp_stream: TcpStream,
+    tls_acceptor: TlsAcceptor
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match tls_acceptor.accept(tcp_stream).await {
-        Ok(tls_stream) => {
-            todo!("build tcp tls connection to server and deliver the traffic");
+        Ok(client_tls_stream) => {
+            // obtain domain name from tls connection
+            let server_name_option = client_tls_stream.get_ref().1.server_name();
 
+            if let Some(server_name) = server_name_option {
+                println!("tcp_tls to server name: {}", server_name);
+                
+                // build connection to server
+                let root_store = RootCertStore {
+                    roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+                };
+                let proxy_config = rustls::ClientConfig::builder()
+                    .with_root_certificates(root_store)
+                    .with_no_client_auth();
+
+                let server_port = String::from_str(server_name)? + ":443";
+                let proxy_connector = TlsConnector::from(Arc::new(proxy_config));
+                let server_domain = pki_types::ServerName::try_from(server_name)
+                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
+                    .to_owned();
+
+                let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
+                let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
+
+                // wire the client-proxy, and proxy-server
+                let (mut to_client_read, mut to_client_write) = split(client_tls_stream);
+                let (mut to_server_read, mut to_server_write) = split(server_tls_stream);
+
+                let upload_fut= copy(&mut to_client_read, &mut to_server_write);
+                let download_fut = copy(&mut to_server_read, &mut to_client_write);
+                
+                tokio::join!(upload_fut, download_fut);
+            }
         }
 
         Err(e) => { println!("TLS accepted error on tcp: {}", e); }
     }
+
+    Ok(())
 }
 
 
@@ -84,9 +121,22 @@ async fn process_quic_request(endpoint: Endpoint) {
     endpoint.wait_idle().await;
 }
 
-async fn proxy_quic_connection(conn: Incoming) {
-    todo!("build quic connection to server and deliver the traffic");
+async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
+    let quinn_conn = conn.await?;
+
+    let server_domain = quinn_conn
+        .handshake_data()
+        .unwrap()
+        .downcast::<quinn::crypto::rustls::HandshakeData>().unwrap()
+        .server_name
+        .map_or_else(|| "<none>".into(), |x| x);
+    println!("quic to server name: {}", &server_domain);
+    
+    todo!("how to wire data in the connection level, not stream");
+
+
+    Ok(())
 }
 
 
