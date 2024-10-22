@@ -132,8 +132,34 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
         .server_name
         .map_or_else(|| "<none>".into(), |x| x);
     println!("quic to server name: {}", &server_domain);
+
+
+    // set connection to the server
+    let root_store = RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+    };
+    let mut proxy_config = rustls::ClientConfig::builder()
+        .with_root_certificates(root_store)
+        .with_no_client_auth();
+    proxy_config.enable_early_data = true;
+    proxy_config.alpn_protocols = vec![HTTP3.to_vec()];
+
+    let mut proxy_endpoint = h3_quinn::quinn::Endpoint::client("0.0.0.0:0".parse().unwrap())?;
+    let proxy_config = quinn::ClientConfig::new(Arc::new(
+        quinn::crypto::rustls::QuicClientConfig::try_from(proxy_config)?,
+    ));
+    proxy_endpoint.set_default_client_config(proxy_config);
+
+    let server_domain_port = server_domain.clone() + ":443";
+    let server_addr = tokio::net::lookup_host(server_domain_port)
+        .await?
+        .next()
+        .ok_or("dns found no addresses")?;
+
+    let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
+
     
-    todo!("how to wire data in the connection level, not stream");
+    todo!("now had two equivalent connections, try transfer frames of every stream to new connection");
 
 
     Ok(())
