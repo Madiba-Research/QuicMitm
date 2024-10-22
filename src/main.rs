@@ -1,6 +1,6 @@
-use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
+use std::{borrow::BorrowMut, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc, usize};
 
-use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming};
+use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming, RecvStream, SendStream};
 use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
 
 use tokio::net::{TcpListener, TcpStream};
@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     // for tcp usage
     let tcp_tls_acceptor = get_h2_config()?;
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    let tcp_listener = TcpListener::bind("172.30.143.77:443").await?;
+    let tcp_listener = TcpListener::bind("172.30.143.91:443").await?;
     println!("Tcp binding finished");
 
     // set tls for quic
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let endpoint = quinn::Endpoint::server(
         server_config,
         // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 77)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 91)), 443),
     )?;
     println!("Quic binding finished");
 
@@ -158,22 +158,58 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
 
-    let uni_task = tokio::spawn(handle_uni_stream(proxy_conn, server_conn));
-    let bi_task = tokio::spawn(handle_bi_stream(proxy_conn, server_conn));
+    let proxy_conn_clone = proxy_conn.clone();
+    let server_conn_clone = server_conn.clone();
+
+    let uni_task = tokio::spawn(accept_uni_streams(proxy_conn, server_conn));
+    let bi_task = tokio::spawn(accept_bi_streams(proxy_conn_clone, server_conn_clone));
 
     tokio::join!(uni_task, bi_task);
-    
-    todo!("now had two equivalent connections, try transfer frames of every stream to new connection");
+    Ok(())
+}
 
+
+async fn accept_bi_streams(
+    proxy_conn: Connection,
+    server_conn: Connection,
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+    todo!("follow the pattern of accept_uni_streams, make the bi stream work");
+
+    loop {
+        
+    }
 
     Ok(())
 }
 
 
-async fn handle_uni_stream(proxy_conn: Connection, server_conn: Connection) {
-    
+async fn accept_uni_streams(
+    proxy_conn: Connection,
+    server_conn: Connection
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+
+    loop {
+        let mut recv_stream = proxy_conn.accept_uni().await?;
+        let mut send_stream = server_conn.open_uni().await?;
+
+        tokio::spawn(async move {
+            handle_uni(&mut recv_stream, &mut send_stream).await;
+        });
+    }
+    Ok(())
 }
 
+async fn handle_uni(
+    recv_stream: &mut RecvStream,
+    send_stream: &mut SendStream,
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+
+    while let Some(chunk) = recv_stream.read_chunk(usize::MAX, true).await? {
+        send_stream.write_chunk(chunk.bytes);
+    }
+
+    Ok(())
+}
 
 
 
