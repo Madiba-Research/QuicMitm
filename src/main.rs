@@ -1,6 +1,6 @@
 use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
-use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
+use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming};
 use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
 
 use tokio::net::{TcpListener, TcpStream};
@@ -123,9 +123,9 @@ async fn process_quic_request(endpoint: Endpoint) {
 
 async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
-    let quinn_conn = conn.await?;
+    let proxy_conn = conn.await?;
 
-    let server_domain = quinn_conn
+    let server_domain = proxy_conn
         .handshake_data()
         .unwrap()
         .downcast::<quinn::crypto::rustls::HandshakeData>().unwrap()
@@ -158,12 +158,23 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
 
+    let uni_task = tokio::spawn(handle_uni_stream(proxy_conn, server_conn));
+    let bi_task = tokio::spawn(handle_bi_stream(proxy_conn, server_conn));
+
+    tokio::join!(uni_task, bi_task);
     
     todo!("now had two equivalent connections, try transfer frames of every stream to new connection");
 
 
     Ok(())
 }
+
+
+async fn handle_uni_stream(proxy_conn: Connection, server_conn: Connection) {
+    
+}
+
+
 
 
 
