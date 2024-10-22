@@ -1,5 +1,6 @@
-use std::{borrow::BorrowMut, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc, usize};
+use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc, usize};
 
+use bytes::Buf;
 use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming, RecvStream, SendStream};
 use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
 
@@ -46,9 +47,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
     // set server
     let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    let quic_task = tokio::spawn(process_quic_request(endpoint));
-    tokio::join!(tcp_tls_task, quic_task);
-
+    tcp_tls_task.await;
+    // let quic_task = tokio::spawn(process_quic_request(endpoint));
+    // let _ = tokio::join!(tcp_tls_task, quic_task);
 
     Ok(())
 }
@@ -63,6 +64,8 @@ async fn process_tcp_request(
         let tls_acceptor_clone = tls_acceptor.clone();
         tokio::spawn(proxy_tcp_tls(tcp_stream, tls_acceptor_clone));
     }
+
+    Ok(())
 }
 
 
@@ -99,10 +102,23 @@ async fn proxy_tcp_tls(
                 let (mut to_client_read, mut to_client_write) = split(client_tls_stream);
                 let (mut to_server_read, mut to_server_write) = split(server_tls_stream);
 
-                let upload_fut= copy(&mut to_client_read, &mut to_server_write);
-                let download_fut = copy(&mut to_server_read, &mut to_client_write);
-                
-                tokio::join!(upload_fut, download_fut);
+                // need check
+
+                let upload_fut= tokio::spawn(async move {
+                    match copy(&mut to_client_read, &mut to_server_write).await {
+                        Ok(_) => println!("upload good"),
+                        Err(e) => println!("upload error: {}", e),
+                    };
+                });
+                let download_fut = tokio::spawn(async move {
+                    match copy(&mut to_server_read, &mut to_client_write).await {
+                        Ok(_) => println!("download good"),
+                        Err(e) => println!("download error: {}", e),
+                    }
+                });
+                let _ = tokio::join!(upload_fut, download_fut);
+
+                println!("tcp tls stream done");
             }
         }
 
@@ -164,7 +180,7 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
     let uni_task = tokio::spawn(accept_uni_streams(proxy_conn, server_conn));
     let bi_task = tokio::spawn(accept_bi_streams(proxy_conn_clone, server_conn_clone));
 
-    tokio::join!(uni_task, bi_task);
+    let _ = tokio::join!(uni_task, bi_task);
     Ok(())
 }
 
@@ -173,12 +189,33 @@ async fn accept_bi_streams(
     proxy_conn: Connection,
     server_conn: Connection,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-    todo!("follow the pattern of accept_uni_streams, make the bi stream work");
 
     loop {
-        
-    }
+        let client_stream = proxy_conn.accept_bi().await?;
+        let server_stream = server_conn.open_bi().await?;
 
+        tokio::spawn(async move {
+            let _ = handle_bi(client_stream, server_stream).await;
+        });
+    }
+    Ok(())
+}
+
+async fn handle_bi(
+    client_stream: (SendStream, RecvStream),
+    server_stream: (SendStream, RecvStream),
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+
+    let (mut to_client_send, mut to_client_recv) = client_stream;
+    let (mut to_server_send, mut to_server_recv) = server_stream;
+    let upload_task = tokio::spawn(async move {
+        let _ = handle_uni(&mut to_client_recv, &mut to_server_send, false).await;
+    });
+    let download_task = tokio::spawn(async move {
+        let _ = handle_uni(&mut to_server_recv, &mut to_client_send, false).await;
+    });
+
+    let _ = tokio::join!(upload_task, download_task);
     Ok(())
 }
 
@@ -193,7 +230,7 @@ async fn accept_uni_streams(
         let mut send_stream = server_conn.open_uni().await?;
 
         tokio::spawn(async move {
-            handle_uni(&mut recv_stream, &mut send_stream).await;
+            handle_uni(&mut recv_stream, &mut send_stream, false).await;
         });
     }
     Ok(())
@@ -202,12 +239,20 @@ async fn accept_uni_streams(
 async fn handle_uni(
     recv_stream: &mut RecvStream,
     send_stream: &mut SendStream,
+    print_data: bool
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
 
+    // if not work, try read and write instead of read_chunk and write_chunk
     while let Some(chunk) = recv_stream.read_chunk(usize::MAX, true).await? {
-        send_stream.write_chunk(chunk.bytes);
+        
+        if print_data {
+            let readable = chunk.bytes.to_vec();
+            println!("quic data: {}", String::from_utf8_lossy(&readable));
+        }
+        
+        let _ = send_stream.write_chunk(chunk.bytes).await;
     }
-
+    send_stream.finish()?;
     Ok(())
 }
 
