@@ -47,9 +47,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
     // set server
     let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    tcp_tls_task.await;
-    // let quic_task = tokio::spawn(process_quic_request(endpoint));
-    // let _ = tokio::join!(tcp_tls_task, quic_task);
+    let quic_task = tokio::spawn(process_quic_request(endpoint));
+    let _ = tokio::join!(tcp_tls_task, quic_task);
 
     Ok(())
 }
@@ -102,19 +101,22 @@ async fn proxy_tcp_tls(
                 let (mut to_client_read, mut to_client_write) = split(client_tls_stream);
                 let (mut to_server_read, mut to_server_write) = split(server_tls_stream);
 
-                todo!("need to check, not working");
-                let upload_fut= tokio::spawn(async move {
-                    match copy(&mut to_client_read, &mut to_server_write).await {
-                        Ok(_) => println!("upload good"),
-                        Err(e) => println!("upload error: {}", e),
-                    };
-                });
-                let download_fut = tokio::spawn(async move {
-                    match copy(&mut to_server_read, &mut to_client_write).await {
-                        Ok(_) => println!("download good"),
-                        Err(e) => println!("download error: {}", e),
-                    }
-                });
+                let upload_fut = copy(&mut to_client_read, &mut to_server_write);
+                let download_fut = copy(&mut to_server_read, &mut to_client_write);
+
+                // todo!("need to check, not working");
+                // let upload_fut= tokio::spawn(async move {
+                //     match copy(&mut to_client_read, &mut to_server_write).await {
+                //         Ok(_) => println!("upload good"),
+                //         Err(e) => println!("upload error: {}", e),
+                //     };
+                // });
+                // let download_fut = tokio::spawn(async move {
+                //     match copy(&mut to_server_read, &mut to_client_write).await {
+                //         Ok(_) => println!("download good"),
+                //         Err(e) => println!("download error: {}", e),
+                //     }
+                // });
                 let _ = tokio::join!(upload_fut, download_fut);
 
                 println!("tcp tls stream done");
