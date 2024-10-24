@@ -38,8 +38,8 @@ webpki-roots = "0.26.6"
 futures = "0.3.31"
 # rustls-pki-types = "1.10.0"
 
-[patch.crates-io]
-rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git" }
+# [patch.crates-io]
+# rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git" }
 
 # [build-dependencies]
 # cargo-patch = "0.3"

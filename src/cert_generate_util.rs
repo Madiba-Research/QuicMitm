@@ -67,7 +67,10 @@ impl DynamicCertResolver {
         // let my_ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
         // let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
         
-        let ca_cert = Certificate::from_der(&ca_der).unwrap();
+        // let ca_cert = Certificate::from_der(&ca_der).unwrap();
+        let ca_cert_param = CertificateParams::from_ca_cert_der(&ca_der).unwrap();
+        let ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
+
 
         // to check the if this cert is same as our ca cert
         // let pem_serialized = my_ca_cert_new.pem();
