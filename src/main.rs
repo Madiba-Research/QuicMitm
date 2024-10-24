@@ -4,7 +4,7 @@ use bytes::Buf;
 use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming, RecvStream, SendStream};
 use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
 
-use tokio::{io::copy_bidirectional, net::{TcpListener, TcpStream}};
+use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio::io::{split, copy};
 
@@ -105,7 +105,6 @@ async fn proxy_tcp_tls(
                 let upload_fut = copy(&mut to_client_read, &mut to_server_write);
                 let download_fut = copy(&mut to_server_read, &mut to_client_write);
 
-                // todo!("need to check, not working");
                 // let upload_fut= tokio::spawn(async move {
                 //     match copy(&mut to_client_read, &mut to_server_write).await {
                 //         Ok(_) => println!("upload good"),
@@ -176,8 +175,8 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
 
-    let proxy_conn_clone = proxy_conn.clone();
-    let server_conn_clone = server_conn.clone();
+    // let proxy_conn_clone = proxy_conn.clone();
+    // let server_conn_clone = server_conn.clone();
 
     // let uni_task = tokio::spawn(accept_uni_streams(proxy_conn, server_conn));
     // let bi_task = tokio::spawn(accept_bi_streams(proxy_conn_clone, server_conn_clone));
@@ -186,7 +185,9 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
     // let bi_task = accept_bi_streams(proxy_conn_clone, server_conn_clone);
 
     // let _ = tokio::join!(uni_task, bi_task);
-    accept_bi_streams(proxy_conn_clone, server_conn_clone).await;
+    // accept_bi_streams(proxy_conn_clone, server_conn_clone).await;
+
+    accept_bi_streams(proxy_conn, server_conn).await;
 
     Ok(())
 }
@@ -204,8 +205,8 @@ async fn accept_bi_streams(
         // tokio::spawn(async move {
         //     let _ = handle_bi(client_stream, server_stream).await;
         // });
-        // tokio::spawn(handle_bi(client_stream, server_stream));
-        tokio::spawn(handle_bi_naive(client_stream, server_stream));
+        tokio::spawn(handle_bi(client_stream, server_stream));
+        // tokio::spawn(handle_bi_naive(client_stream, server_stream));
     }
     Ok(())
 }
