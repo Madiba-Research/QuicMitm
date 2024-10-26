@@ -1,17 +1,12 @@
 use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
-use futures::future;
-use h3::{client::SendRequest, quic::BidiStream, server::RequestStream};
-use h3_quinn::OpenStreams;
-use http::Request;
+use bytes::Buf;
 use quinn::{crypto::rustls::QuicServerConfig, Connection, Endpoint, Incoming, RecvStream, SendStream};
 use rustls::{pki_types::{self, ServerName}, RootCertStore, ServerConfig};
 
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio::io::{split, copy};
-
-use bytes::{Buf, Bytes};
 
 mod cert_generate_util;
 
@@ -110,6 +105,18 @@ async fn proxy_tcp_tls(
                 let upload_fut = copy(&mut to_client_read, &mut to_server_write);
                 let download_fut = copy(&mut to_server_read, &mut to_client_write);
 
+                // let upload_fut= tokio::spawn(async move {
+                //     match copy(&mut to_client_read, &mut to_server_write).await {
+                //         Ok(_) => println!("upload good"),
+                //         Err(e) => println!("upload error: {}", e),
+                //     };
+                // });
+                // let download_fut = tokio::spawn(async move {
+                //     match copy(&mut to_server_read, &mut to_client_write).await {
+                //         Ok(_) => println!("download good"),
+                //         Err(e) => println!("download error: {}", e),
+                //     }
+                // });
                 let _ = tokio::join!(upload_fut, download_fut);
 
                 // println!("tcp tls stream done");
@@ -131,7 +138,6 @@ async fn process_quic_request(endpoint: Endpoint) {
     endpoint.wait_idle().await;
 }
 
-
 async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let proxy_conn = conn.await?;
@@ -143,7 +149,8 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
         .server_name
         .map_or_else(|| "<none>".into(), |x| x);
     println!("quic to server name: {}", &server_domain);
-    
+
+
     // set connection to the server
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
@@ -166,73 +173,43 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
         .next()
         .ok_or("dns found no addresses")?;
 
-    
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
-    let h3_quinn_server_conn = h3_quinn::Connection::new(server_conn);
-    
-    let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
 
-    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn).await;
-    
-    proxy_endpoint.wait_idle().await;
+    // let proxy_conn_clone = proxy_conn.clone();
+    // let server_conn_clone = server_conn.clone();
+
+    // let uni_task = tokio::spawn(accept_uni_streams(proxy_conn, server_conn));
+    // let bi_task = tokio::spawn(accept_bi_streams(proxy_conn_clone, server_conn_clone));
+
+    // let uni_task = accept_uni_streams(proxy_conn, server_conn);
+    // let bi_task = accept_bi_streams(proxy_conn_clone, server_conn_clone);
+
+    // let _ = tokio::join!(uni_task, bi_task);
+    // accept_bi_streams(proxy_conn_clone, server_conn_clone).await;
+
+    accept_bi_streams(proxy_conn, server_conn).await;
+
     Ok(())
 }
 
 
 async fn accept_bi_streams(
-    mut proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>,
-    h3_quinn_server_conn: h3_quinn::Connection,
+    proxy_conn: Connection,
+    server_conn: Connection,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
 
-    let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
-    let drive = async move {
-        future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
-        Ok::<(), Box<dyn std::error::Error>>(())
-    };
+    loop {
+        let client_stream = proxy_conn.accept_bi().await?;
+        let server_stream = server_conn.open_bi().await?;
 
-    while let Some(client_req_stream) = proxy_conn.accept().await? {
-        println!("h3 client request: {:?}", client_req_stream.0);
-        let mut req_server_stream = send_request.send_request(client_req_stream.0).await?;
-        
-        tokio::spawn(handle_tunnel_stream(client_req_stream.1, req_server_stream));
+        // tokio::spawn(async move {
+        //     let _ = handle_bi(client_stream, server_stream).await;
+        // });
+        tokio::spawn(handle_bi(client_stream, server_stream));
+        // tokio::spawn(handle_bi_naive(client_stream, server_stream));
     }
-
-    drive.await;
-    
-    // loop {
-    //     let client_stream = proxy_conn.accept_bi().await?;
-    //     let server_stream = server_conn.open_bi().await?;
-    //     tokio::spawn(handle_bi(client_stream, server_stream));
-    // }
     Ok(())
 }
-
-async fn handle_tunnel_stream<T>(
-    mut to_client_stream: h3::server::RequestStream<T, Bytes>,
-    mut to_server_stream: h3::client::RequestStream<T, Bytes>,
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>>
-where T: BidiStream<Bytes> {
-
-    while let Some(mut chunk) = to_client_stream.recv_data().await? {
-        let data = chunk.copy_to_bytes(chunk.remaining());
-        to_server_stream.send_data(data).await?;
-    }
-    to_server_stream.finish().await?;
-
-    let server_resp = to_server_stream.recv_response().await?;
-    to_client_stream.send_response(server_resp).await?;
-
-    while let Some(mut chunk) = to_server_stream.recv_data().await? {
-        let data = chunk.copy_to_bytes(chunk.remaining());
-        // println!("h3 received data from server: {}", String::from_utf8_lossy(data.clone().chunk()));
-        to_client_stream.send_data(data).await?;
-    }
-    to_client_stream.finish().await?;
-
-    Ok(())
-}
-
-
 
 async fn handle_bi(
     client_stream: (SendStream, RecvStream),
@@ -249,6 +226,56 @@ async fn handle_bi(
     Ok(())
 }
 
+async fn handle_bi_naive(
+    client_stream: (SendStream, RecvStream),
+    server_stream: (SendStream, RecvStream),
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+    let (mut to_client_send, mut to_client_recv) = client_stream;
+    let (mut to_server_send, mut to_server_recv) = server_stream;
+
+    while let Some(chunk) = to_client_recv.read_chunk(usize::MAX, true).await? {
+        match to_server_send.write(&chunk.bytes).await {
+            Ok(_) => {},
+            Err(e) => { println!("write error on bi to server: {}", e); },
+        };
+    }
+    match to_server_send.finish() {
+        Ok(_) => {},
+        Err(e) => { println!("finish error on bi to server: {}", e); },
+    };
+    while let Some(chunk) = to_server_recv.read_chunk(usize::MAX, true).await? {
+        match to_client_send.write(&chunk.bytes).await {
+            Ok(_) => {},
+            Err(e) => { println!("write error on bi to client: {}", e); },
+        };
+    }
+    match to_client_send.finish() {
+        Ok(_) => {},
+        Err(e) => { println!("finish error on bi to client: {}", e); },
+    };
+
+    println!("bi naive done");
+
+    Ok(())
+}
+
+
+async fn accept_uni_streams(
+    proxy_conn: Connection,
+    server_conn: Connection
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+
+    loop {
+        let recv_stream = proxy_conn.accept_uni().await?;
+        let send_stream = server_conn.open_uni().await?;
+
+        // tokio::spawn(async move {
+        //     handle_uni(&mut recv_stream, &mut send_stream, false).await;
+        // });
+        tokio::spawn(handle_uni(recv_stream, send_stream, true));
+    }
+    Ok(())
+}
 
 async fn handle_uni(
     mut recv_stream: RecvStream,
@@ -263,7 +290,7 @@ async fn handle_uni(
         
         if print_data {
             let readable = chunk.bytes.to_vec();
-            println!("quic data from {} to {}: {} bytes", recv_id, send_id, readable.len());
+            println!("quic data from {} to {}: {} bytes", recv_id.to_string(), send_id.to_string(), readable.len());
         };
         
         match send_stream.write_chunk(chunk.bytes).await {
