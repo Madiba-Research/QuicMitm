@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package h3server.httpreq;
+
+message HttpRequest {
+
+    string url = 1;
+    string method = 2;
+    string version = 3;
+    
+    string headers = 4;
+    string extensions = 5;
+    
+    bytes body = 6;
+}

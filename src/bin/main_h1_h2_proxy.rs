@@ -58,18 +58,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     println!("Tcp binding finished");
 
     // set tls for quic
-    let server_config = get_h3_config()?;
-    let endpoint = quinn::Endpoint::server(
-        server_config,
-        // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 91)), 443),
-    )?;
-    println!("Quic binding finished");
+    // let server_config = get_h3_config()?;
+    // let endpoint = quinn::Endpoint::server(
+    //     server_config,
+    //     // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
+    //     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 91)), 443),
+    // )?;
+    // println!("Quic binding finished");
 
     // set server
     let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    let quic_task = tokio::spawn(process_quic_request(endpoint));
-    let _ = tokio::join!(tcp_tls_task, quic_task);
+    // let quic_task = tokio::spawn(process_quic_request(endpoint));
+    // let _ = tokio::join!(tcp_tls_task, quic_task);
+    let _ = tcp_tls_task.await;
 
     Ok(())
 }
@@ -281,160 +282,6 @@ async fn proxy_tcp_tls_naive(
 }
 
 
-async fn process_quic_request(endpoint: Endpoint) {
-    while let Some(new_conn) = endpoint.accept().await {
-        println!("quic accepting connection");
-        tokio::spawn(proxy_quic_connection(new_conn));
-    }
-    endpoint.wait_idle().await;
-}
-
-
-async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-
-    let proxy_conn = conn.await?;
-
-    let server_domain = proxy_conn
-        .handshake_data()
-        .unwrap()
-        .downcast::<quinn::crypto::rustls::HandshakeData>().unwrap()
-        .server_name
-        .map_or_else(|| "<none>".into(), |x| x);
-    println!("quic to server name: {}", &server_domain);
-    
-    // set connection to the server
-    let root_store = RootCertStore {
-        roots: webpki_roots::TLS_SERVER_ROOTS.into(),
-    };
-    let mut proxy_config = rustls::ClientConfig::builder()
-        .with_root_certificates(root_store)
-        .with_no_client_auth();
-    proxy_config.enable_early_data = true;
-    proxy_config.alpn_protocols = vec![HTTP3.to_vec()];
-
-    let mut proxy_endpoint = h3_quinn::quinn::Endpoint::client("0.0.0.0:0".parse().unwrap())?;
-    let proxy_config = quinn::ClientConfig::new(Arc::new(
-        quinn::crypto::rustls::QuicClientConfig::try_from(proxy_config)?,
-    ));
-    proxy_endpoint.set_default_client_config(proxy_config);
-
-    let server_domain_port = server_domain.clone() + ":443";
-    let server_addr = tokio::net::lookup_host(server_domain_port)
-        .await?
-        .next()
-        .ok_or("dns found no addresses")?;
-
-    
-    let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
-    let h3_quinn_server_conn = h3_quinn::Connection::new(server_conn);
-    
-    let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
-
-    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn).await;
-    
-    proxy_endpoint.wait_idle().await;
-    Ok(())
-}
-
-
-async fn accept_bi_streams(
-    mut proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>,
-    h3_quinn_server_conn: h3_quinn::Connection,
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-
-    let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
-    let drive = async move {
-        future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
-        Ok::<(), Box<dyn std::error::Error>>(())
-    };
-
-    while let Some(client_req_stream) = proxy_conn.accept().await? {
-        println!("h3 client request: {:?}", client_req_stream.0);
-        let mut req_server_stream = send_request.send_request(client_req_stream.0).await?;
-        
-        tokio::spawn(handle_tunnel_stream(client_req_stream.1, req_server_stream));
-    }
-
-    drive.await;
-    
-    // loop {
-    //     let client_stream = proxy_conn.accept_bi().await?;
-    //     let server_stream = server_conn.open_bi().await?;
-    //     tokio::spawn(handle_bi(client_stream, server_stream));
-    // }
-    Ok(())
-}
-
-async fn handle_tunnel_stream<T>(
-    mut to_client_stream: h3::server::RequestStream<T, Bytes>,
-    mut to_server_stream: h3::client::RequestStream<T, Bytes>,
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>>
-where T: BidiStream<Bytes> {
-
-    while let Some(mut chunk) = to_client_stream.recv_data().await? {
-        let data = chunk.copy_to_bytes(chunk.remaining());
-        to_server_stream.send_data(data).await?;
-    }
-    to_server_stream.finish().await?;
-
-    let server_resp = to_server_stream.recv_response().await?;
-    to_client_stream.send_response(server_resp).await?;
-
-    while let Some(mut chunk) = to_server_stream.recv_data().await? {
-        let data = chunk.copy_to_bytes(chunk.remaining());
-        // println!("h3 received data from server: {}", String::from_utf8_lossy(data.clone().chunk()));
-        to_client_stream.send_data(data).await?;
-    }
-    to_client_stream.finish().await?;
-
-    Ok(())
-}
-
-
-
-async fn handle_bi(
-    client_stream: (SendStream, RecvStream),
-    server_stream: (SendStream, RecvStream),
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-
-    let (mut to_client_send, mut to_client_recv) = client_stream;
-    let (mut to_server_send, mut to_server_recv) = server_stream;
-
-    let upload_task = handle_uni(to_client_recv, to_server_send, false);
-    let download_task = handle_uni(to_server_recv, to_client_send, false);
-
-    let _ = tokio::join!(upload_task, download_task);
-    Ok(())
-}
-
-
-async fn handle_uni(
-    mut recv_stream: RecvStream,
-    mut send_stream: SendStream,
-    print_data: bool
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-    let recv_id = recv_stream.id();
-    let send_id = send_stream.id();
-
-    // if not work, try read and write instead of read_chunk and write_chunk
-    while let Some(chunk) = recv_stream.read_chunk(usize::MAX, true).await? {
-        
-        if print_data {
-            let readable = chunk.bytes.to_vec();
-            println!("quic data from {} to {}: {} bytes", recv_id, send_id, readable.len());
-        };
-        
-        match send_stream.write_chunk(chunk.bytes).await {
-            Ok(_) => { println!("uni write good"); },
-            Err(e) => {println!("write error: {}", e)},
-        };
-    }
-
-    send_stream.finish()?;
-    println!("stream ends");
-    Ok(())
-}
-
 
 
 
@@ -456,21 +303,5 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 }
 
 
-fn get_h3_config() -> io::Result<quinn::ServerConfig> {
 
-    let ca_cert_file = "democacert.pem";
-    let ca_key_file = "democakey.pem";
-    
-    let mut config = ServerConfig::builder()
-        .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
-
-    
-    config.alpn_protocols= vec![HTTP3.to_vec()];
-
-    let quinn_server_config =
-        quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(config).unwrap()));
-
-    Ok(quinn_server_config)
-}
 

@@ -2,9 +2,11 @@ forward all tcp and udp packs to 443 into the localhost proxy
 remember to set the server's ip address as --to-destination
 every time after reboot, remember to set iptables
 
-iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.91
-iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.91
+iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.95
+iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.95
 
+Magisk repo:
+https://github.com/Magisk-Modules-Alt-Repo
 add cacert to the phone:
 https://github.com/Magisk-Modules-Alt-Repo/custom-certificate-authorities?tab=readme-ov-file
 
@@ -19,5 +21,11 @@ One should explicitly set tls config alpn as http2.
 
 
 Todo:
-For now most h3 request can go through proxy but cannot be 100% processed successfully. 
+For now most h3 request can go through proxy but cannot be 100% processed successfully.
+Solved:
+always use bi_stream to receive requests from client.
+
+
+to run proxy:
+cargo run --bin main_h1_h2_h3
 
