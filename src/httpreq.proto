@@ -9,7 +9,6 @@ message HttpRequest {
     string version = 3;
     
     string headers = 4;
-    string extensions = 5;
     
-    bytes body = 6;
+    bytes body = 5;
 }

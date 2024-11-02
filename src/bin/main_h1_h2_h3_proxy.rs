@@ -1,15 +1,15 @@
-use std::{borrow::BorrowMut, fs::OpenOptions, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
+use std::{fs::OpenOptions, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
 use futures::future;
 use h3::quic::BidiStream;
 
-use h3server::create_http_request_type;
+// use h3server::create_http_request_type;
 use http::request::Parts;
 use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
-use prost::Message;
+// use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
 
@@ -20,7 +20,7 @@ use tokio::io::{split, copy};
 use bytes::{Buf, Bytes};
 use http_body_util::Full;
 
-use once_cell::sync::Lazy;
+// use once_cell::sync::Lazy;
 
 mod cert_generate_util;
 
@@ -50,24 +50,24 @@ where
 }
 
 
-static GLOBAL_FILE_WRITER: Lazy<Arc<Mutex<tokio::fs::File>>> = Lazy::new(|| {
-    let file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("httpRequestDump")
-        .expect("Failed to open file");
+// static GLOBAL_FILE_WRITER: Lazy<Arc<Mutex<tokio::fs::File>>> = Lazy::new(|| {
+//     let file = OpenOptions::new()
+//         .create(true)
+//         .append(true)
+//         .open("httpRequestDump")
+//         .expect("Failed to open file");
 
-    Arc::new(Mutex::new(tokio::fs::File::from_std(file)))
-});
+//     Arc::new(Mutex::new(tokio::fs::File::from_std(file)))
+// });
 
-async fn global_write_file(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    match GLOBAL_FILE_WRITER.lock().await.write_all(&data).await {
-        Ok(_) => {},
-        Err(e) => { println!("error while writing file: {}", e) },
-    }
+// async fn global_write_file(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//     match GLOBAL_FILE_WRITER.lock().await.write_all(&data).await {
+//         Ok(_) => {},
+//         Err(e) => { println!("error while writing file: {}", e) },
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 
 #[tokio::main]
@@ -221,16 +221,16 @@ async fn handle_http2_tunnel(
     // let req_body_vec = req_body_byte.to_vec();
     // println!("h2 request part: {:?}\n h2 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
 
-    let req_proto = create_http_request_type(
-        req_parts.uri.to_string(),
-        req_parts.method.to_string(),
-        format!("{:?}", req_parts.version),
-        format!("{:?}", req_parts.headers),
-        format!("{:?}", req_parts.extensions),
-        req_body_byte.clone()
-    );
-    let req_proto_dump = req_proto.encode_to_vec();
-    global_write_file(req_proto_dump).await?;
+    // let req_proto = create_http_request_type(
+    //     req_parts.uri.to_string(),
+    //     req_parts.method.to_string(),
+    //     format!("{:?}", req_parts.version),
+    //     format!("{:?}", req_parts.headers),
+
+    //     req_body_byte.clone()
+    // );
+    // let req_proto_dump = req_proto.encode_to_vec();
+    // global_write_file(req_proto_dump).await?;
     
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
@@ -272,19 +272,19 @@ async fn handle_http1_tunnel(
     let (req_parts, req_body) = client_req.into_parts();
     let req_body_byte = req_body.collect().await?.to_bytes();
 
-    let req_proto = create_http_request_type(
-        req_parts.uri.to_string(),
-        req_parts.method.to_string(),
-        format!("{:?}", req_parts.version),
-        format!("{:?}", req_parts.headers),
-        format!("{:?}", req_parts.extensions),
-        req_body_byte.clone()
-    );
-    let req_proto_dump = req_proto.encode_to_vec();
-    global_write_file(req_proto_dump).await?;
+    // let req_proto = create_http_request_type(
+    //     req_parts.uri.to_string(),
+    //     req_parts.method.to_string(),
+    //     format!("{:?}", req_parts.version),
+    //     format!("{:?}", req_parts.headers),
 
-    let req_body_vec = req_body_byte.to_vec();
-    println!("h1 request part: {:?}\n h1 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
+    //     req_body_byte.clone()
+    // );
+    // let req_proto_dump = req_proto.encode_to_vec();
+    // global_write_file(req_proto_dump).await?;
+
+    // let req_body_vec = req_body_byte.to_vec();
+    // println!("h1 request part: {:?}\n h1 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
     let server_resp = server_sender.send_request(req_to_server).await?;
@@ -450,16 +450,16 @@ where T: BidiStream<Bytes> {
     to_server_stream.finish().await?;
     
 
-    let req_proto = create_http_request_type(
-        client_req_parts.uri.to_string(),
-        client_req_parts.method.to_string(),
-        format!("{:?}", client_req_parts.version),
-        format!("{:?}", client_req_parts.headers),
-        format!("{:?}", client_req_parts.extensions),
-        Bytes::from(req_body_vec)
-    );
-    let req_proto_dump = req_proto.encode_to_vec();
-    global_write_file(req_proto_dump).await?;
+    // let req_proto = create_http_request_type(
+    //     client_req_parts.uri.to_string(),
+    //     client_req_parts.method.to_string(),
+    //     format!("{:?}", client_req_parts.version),
+    //     format!("{:?}", client_req_parts.headers),
+
+    //     Bytes::from(req_body_vec)
+    // );
+    // let req_proto_dump = req_proto.encode_to_vec();
+    // global_write_file(req_proto_dump).await?;
 
     let server_resp = to_server_stream.recv_response().await?;
     to_client_stream.send_response(server_resp).await?;
