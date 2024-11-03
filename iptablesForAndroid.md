@@ -29,3 +29,9 @@ always use bi_stream to receive requests from client.
 to run proxy:
 cargo run --bin main_h1_h2_h3
 
+
+run mongodb in docker:
+docker run --name mongodb -p 27017:27017 -d mongodb/mongodb-community-server:latest
+request data location:
+database("requestdb").collection("httpreq")
+

@@ -16,6 +16,10 @@ path = "src/bin/main_h1_h2_proxy.rs"
 name = "test_mongodb"
 path = "src/bin/test_mongodb.rs"
 
+[[bin]]
+name = "test_db_read_req"
+path = "src/bin/test_db_read_req.rs"
+
 
 [dependencies]
 tokio = { version = "1.40.0", features = ["full"]}

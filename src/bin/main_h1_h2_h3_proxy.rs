@@ -1,26 +1,27 @@
-use std::{fs::OpenOptions, io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
+use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
 use futures::future;
 use h3::quic::BidiStream;
 
+use h3server::{headers_to_hashmap, version_to_string, RequestInMONGO};
 // use h3server::create_http_request_type;
 use http::request::Parts;
 use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
+use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Collection, Database};
 // use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
 
-use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}, sync::Mutex};
+use tokio::{net::{TcpListener, TcpStream}, sync::OnceCell};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio::io::{split, copy};
 
 use bytes::{Buf, Bytes};
 use http_body_util::Full;
 
-// use once_cell::sync::Lazy;
 
 mod cert_generate_util;
 
@@ -68,6 +69,48 @@ where
 
 //     Ok(())
 // }
+
+static MONGO_CLIENT: OnceCell<Arc<Client>> = OnceCell::const_new();
+
+async fn init_mongo_client() -> Arc<Client> {
+    let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
+        .await
+        .expect("Failed to parse options");
+    let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+    client_options.server_api = Some(server_api);
+    let client = Client::with_options(client_options).expect("Failed to create client");
+    Arc::new(client)
+}
+
+async fn get_mongo_client() -> Arc<Client> {
+    // `get_or_init` will call `init_mongo_client` only once, even if accessed from multiple tasks.
+    MONGO_CLIENT.get_or_init(init_mongo_client).await.clone()
+}
+
+async fn get_database() -> Database {
+    get_mongo_client().await.database("requestdb")
+}
+
+// static MONGO_CLIENT: Lazy<Arc<Client>> = Lazy::new(|| {
+//     // Initialize the MongoDB client once, using a synchronous runtime.
+//     let runtime = Runtime::new().expect("Failed to create Tokio runtime");
+//     let client = runtime.block_on(async {
+
+//         let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
+//             .await
+//             .expect("failed option");
+//         let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+//         client_options.server_api = Some(server_api);
+//         Client::with_options(client_options).expect("failed client")
+
+//     });
+//     Arc::new(client)
+// });
+
+// fn get_database() -> Database {
+//     MONGO_CLIENT.database("requestdb")
+// }
+
 
 
 #[tokio::main]
@@ -216,10 +259,24 @@ async fn handle_http2_tunnel(
     mut server_send: hyper::client::conn::http2::SendRequest<Full<Bytes>>,
 ) -> Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>> {
     
+    // write into mongodb
     let (req_parts, req_body) = client_req.into_parts();
+
+    let req_version = version_to_string(&req_parts.version);
+    let req_hash_header = headers_to_hashmap(&req_parts.headers);
     let req_body_byte = req_body.collect().await?.to_bytes();
-    // let req_body_vec = req_body_byte.to_vec();
-    // println!("h2 request part: {:?}\n h2 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
+    let req_body_vec = req_body_byte.to_vec();
+
+    let doc = RequestInMONGO {
+        uri: req_parts.uri.to_string(),
+        method: req_parts.method.to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
+
+    let db_col = get_database().await.collection("httpreq");
+    db_col.insert_one(doc).await?;
 
     // let req_proto = create_http_request_type(
     //     req_parts.uri.to_string(),
@@ -268,9 +325,25 @@ async fn handle_http1_tunnel(
         }
     });
 
-    // check request
+    // check request, write into mongodb
     let (req_parts, req_body) = client_req.into_parts();
+
+    let req_version = version_to_string(&req_parts.version);
+    let req_hash_header = headers_to_hashmap(&req_parts.headers);
     let req_body_byte = req_body.collect().await?.to_bytes();
+    let req_body_vec = req_body_byte.to_vec();
+
+    let doc = RequestInMONGO {
+        uri: req_parts.uri.to_string(),
+        method: req_parts.method.to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
+
+    let db_col = get_database().await.collection("httpreq");
+    db_col.insert_one(doc).await?;
+
 
     // let req_proto = create_http_request_type(
     //     req_parts.uri.to_string(),
@@ -448,6 +521,22 @@ where T: BidiStream<Bytes> {
         to_server_stream.send_data(data).await?;
     }
     to_server_stream.finish().await?;
+
+    
+    // write into mongodb
+    let req_version = version_to_string(&client_req_parts.version);
+    let req_hash_header = headers_to_hashmap(&client_req_parts.headers);
+
+    let doc = RequestInMONGO {
+        uri: client_req_parts.uri.to_string(),
+        method: client_req_parts.method.to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
+
+    let db_col = get_database().await.collection("httpreq");
+    db_col.insert_one(doc).await?;
     
 
     // let req_proto = create_http_request_type(
