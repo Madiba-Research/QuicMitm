@@ -31,7 +31,10 @@ cargo run --bin main_h1_h2_h3
 
 
 run mongodb in docker:
-docker run --name mongodb -p 27017:27017 -d mongodb/mongodb-community-server:latest
-request data location:
-database("requestdb").collection("httpreq")
+sudo docker run --name mongodb -p 27017:27017 -d mongodb/mongodb-community-server:latest
+sudo docker ps
+sudo docker ps -a
+sudo docker start mongodb
+sudo docker stop mongodb
+request data location: database("requestdb").collection("httpreq")
 

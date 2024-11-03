@@ -10,7 +10,7 @@ use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
-use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Collection, Database};
+use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
 // use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};

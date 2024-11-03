@@ -752,6 +752,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-rustls 0.26.0",
+ "tree_magic_mini",
  "webpki-roots 0.26.6",
 ]
 
@@ -2208,6 +2209,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c06d3da6113f116aaee68e4d601191614c9053067f9ab7f6edbcb161237daa54"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "tree_magic_mini"
+version = "3.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aac5e8971f245c3389a5a76e648bfc80803ae066a1243a75db0064d7c1129d63"
+dependencies = [
+ "fnv",
+ "memchr",
+ "nom",
+ "once_cell",
+ "petgraph",
 ]
 
 [[package]]

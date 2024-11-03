@@ -17,16 +17,26 @@ async fn main() -> mongodb::error::Result<()> {
 
     // Create a new client and connect to the server
     let client = Client::with_options(client_options)?;
-
     let my_coll: Collection<RequestInMONGO> = client.database("requestdb").collection("httpreq");
+
+
+    // example: read a request
     let req = my_coll.find_one(
         doc! {
-            "version": "HTTP/3"
+            "method": "POST"
         }
     ).await?
     .expect("Missing req document.");
     println!("req: {:?}", req);
 
+    
+    let result = tree_magic_mini::from_u8(&req.body);
+    println!("body type: {}", result);
+    // body type: text/plain
+    match String::from_utf8(req.body) {
+        Ok(readable) => { println!("body: {}", readable) },
+        Err(e) => { println!("error: {}", e) },
+    }
 
     Ok(())
 }
