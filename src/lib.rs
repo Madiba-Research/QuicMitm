@@ -1,17 +1,74 @@
 use std::collections::HashMap;
 
 use http::Version;
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+
+
+// pub const IS_CONNECTING_DB: bool = false;
+
+
+// pub mod test_field {
+
+//     pub const WITH_QUIC: bool = true;
+
+//     pub const APP: &[u8] = b"com.alibaba.intl.android.apps.poseidon";
+//     pub const APP: &[u8] = b"com.amazon.mShop.android.shopping";
+//     pub const APP: &[u8] = b"com.americasbestpics";
+//     pub const APP: &[u8] = b"com.best.quick.browser";
+//     pub const APP: &[u8] = b"com.cbs.app";
+//     pub const APP: &[u8] = b"com.einnovation.temu";
+//     pub const APP: &[u8] = b"com.google.android.apps.messaging";
+//     pub const APP: &[u8] = b"com.google.android.apps.translate";
+//     pub const APP: &[u8] = b"com.google.android.youtube";
+//     pub const APP: &[u8] = b"com.instabridge.android";
+//     pub const APP: &[u8] = b"com.netflix.mediaclient";
+//     pub const APP: &[u8] = b"com.newleaf.app.android.victor";
+//     pub const APP: &[u8] = b"com.pinterest";
+//     pub const APP: &[u8] = b"com.radio.pocketfm";
+//     pub const APP: &[u8] = b"com.reddit.frontpage";
+//     pub const APP: &[u8] = b"com.weaver.app.prod";
+//     pub const APP: &[u8] = b"gen.tech.impulse.android";
+// }
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RequestInMONGO {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub app: String,
+    pub withquic: bool,
+
     pub uri: String,
     pub method: String,
     pub version: String,
     
     pub header: HashMap<String, String>,
-    pub body: Vec<u8>
+    pub body: Vec<u8>,
+    pub bodytype: Option<String>,
+    pub bodyplaintext: Option<String>,
 }
+
+
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
+pub struct RequestInCSV {
+    pub _id: String,
+
+    pub app: String,
+    pub withquic: bool,
+
+    pub uri: String,
+    pub method: String,
+    pub version: String,
+    
+    pub header: String,
+    // body: Vec<u8>,
+    pub bodytype: Option<String>,
+    pub bodyplaintext: Option<String>,
+}
+
+
 
 pub fn headers_to_hashmap(headers: &http::HeaderMap) -> HashMap<String, String> {
     let mut hashmap = HashMap::new();

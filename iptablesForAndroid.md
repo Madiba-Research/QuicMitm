@@ -5,6 +5,14 @@ every time after reboot, remember to set iptables
 iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.95
 iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.95
 
+to delete a rule for ip table, using flag -D:
+
+iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.95
+iptables -t nat -D OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.95
+
+list rules: iptables -t nat -L OUTPUT --line-numbers
+
+
 Magisk repo:
 https://github.com/Magisk-Modules-Alt-Repo
 add cacert to the phone:
@@ -37,4 +45,20 @@ sudo docker ps -a
 sudo docker start mongodb
 sudo docker stop mongodb
 request data location: database("requestdb").collection("httpreq")
+
+
+app account:
+shaoqi.test@gmail.com
+app passwords:
+asd123
+asd1230-
+
+
+for http request header, and possible value:
+content-encoding:
+{"deflate", "union_sdk_encode", "identity", "br", "amz-1.0", "zstd", "msl_v1", "gzip"}
+For Nov 6, we only process gzip
+
+
+
 

@@ -51,24 +51,6 @@ where
 }
 
 
-// static GLOBAL_FILE_WRITER: Lazy<Arc<Mutex<tokio::fs::File>>> = Lazy::new(|| {
-//     let file = OpenOptions::new()
-//         .create(true)
-//         .append(true)
-//         .open("httpRequestDump")
-//         .expect("Failed to open file");
-
-//     Arc::new(Mutex::new(tokio::fs::File::from_std(file)))
-// });
-
-// async fn global_write_file(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-//     match GLOBAL_FILE_WRITER.lock().await.write_all(&data).await {
-//         Ok(_) => {},
-//         Err(e) => { println!("error while writing file: {}", e) },
-//     }
-
-//     Ok(())
-// }
 
 static MONGO_CLIENT: OnceCell<Arc<Client>> = OnceCell::const_new();
 
@@ -91,30 +73,26 @@ async fn get_database() -> Database {
     get_mongo_client().await.database("requestdb")
 }
 
-// static MONGO_CLIENT: Lazy<Arc<Client>> = Lazy::new(|| {
-//     // Initialize the MongoDB client once, using a synchronous runtime.
-//     let runtime = Runtime::new().expect("Failed to create Tokio runtime");
-//     let client = runtime.block_on(async {
+static USING_QUIC: OnceCell<bool> = OnceCell::const_new();
 
-//         let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
-//             .await
-//             .expect("failed option");
-//         let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-//         client_options.server_api = Some(server_api);
-//         Client::with_options(client_options).expect("failed client")
+static PACKAGE_NAME: OnceCell<String> = OnceCell::const_new();
 
-//     });
-//     Arc::new(client)
-// });
-
-// fn get_database() -> Database {
-//     MONGO_CLIENT.database("requestdb")
-// }
 
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 3 {
+        println!("need 3 args for the program");
+        return Ok(());
+    }
+
+    if args[1] != "h2" && args[1] != "h2h3" {
+        println!("the second arg cannot be other than 'h2' and 'h2h3'");
+        return Ok(());
+    }
 
     rustls::crypto::ring::default_provider()
         .install_default()
@@ -126,19 +104,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let tcp_listener = TcpListener::bind("172.30.143.95:443").await?;
     println!("Tcp binding finished");
 
-    // set tls for quic
-    let server_config = get_h3_config()?;
-    let endpoint = quinn::Endpoint::server(
-        server_config,
-        // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 95)), 443),
-    )?;
-    println!("Quic binding finished");
+    PACKAGE_NAME.set(args[2].to_string()).expect("Failed to set package_name for current proxy work");
 
-    // set server
-    let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
-    let quic_task = tokio::spawn(process_quic_request(endpoint));
-    let _ = tokio::join!(tcp_tls_task, quic_task);
+    if args[1] == "h2h3" {
+        USING_QUIC.set(true);
+        // set tls for quic
+        let server_config = get_h3_config()?;
+        let endpoint = quinn::Endpoint::server(
+            server_config,
+            // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 95)), 443),
+        )?;
+        println!("Quic binding finished");
+
+        // set server
+        let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+        let quic_task = tokio::spawn(process_quic_request(endpoint));
+        let _ = tokio::join!(tcp_tls_task, quic_task);
+    } else {
+        USING_QUIC.set(false);
+        let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+        let _ = tcp_tls_task.await;
+    }
+
 
     Ok(())
 }
@@ -267,16 +255,34 @@ async fn handle_http2_tunnel(
     let req_body_byte = req_body.collect().await?.to_bytes();
     let req_body_vec = req_body_byte.to_vec();
 
+    // deal with data storage field
+    let mut package_name = String::new();
+    if let Some(p) = PACKAGE_NAME.get() {
+        package_name = p.clone();
+    }
+
+    let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
+
     let doc = RequestInMONGO {
+        _id: None,
+        app: package_name.to_string(),
+        withquic: using_quic.clone(),
         uri: req_parts.uri.to_string(),
         method: req_parts.method.to_string(),
         version: req_version,
         header: req_hash_header,
         body: req_body_vec,
+        
+        bodytype: None,
+        bodyplaintext: None,
     };
 
+    println!("in connecting db");
     let db_col = get_database().await.collection("httpreq");
-    db_col.insert_one(doc).await?;
+    match db_col.insert_one(doc).await {
+        Ok(rst) => { println!("insert rst: {:?}", rst) },
+        Err(e) => { println!("insert err: {}", e) },
+    };
 
     // let req_proto = create_http_request_type(
     //     req_parts.uri.to_string(),
@@ -333,16 +339,33 @@ async fn handle_http1_tunnel(
     let req_body_byte = req_body.collect().await?.to_bytes();
     let req_body_vec = req_body_byte.to_vec();
 
+    // deal with data storage field
+    let mut package_name = String::new();
+    if let Some(p) = PACKAGE_NAME.get() {
+        package_name = p.clone();
+    }
+
+    let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
+
     let doc = RequestInMONGO {
+        _id: None,
+        app: package_name.to_string(),
+        withquic: using_quic.clone(),
         uri: req_parts.uri.to_string(),
         method: req_parts.method.to_string(),
         version: req_version,
         header: req_hash_header,
         body: req_body_vec,
+        
+        bodytype: None,
+        bodyplaintext: None,
     };
+
 
     let db_col = get_database().await.collection("httpreq");
     db_col.insert_one(doc).await?;
+
+
 
 
     // let req_proto = create_http_request_type(
@@ -527,17 +550,33 @@ where T: BidiStream<Bytes> {
     let req_version = version_to_string(&client_req_parts.version);
     let req_hash_header = headers_to_hashmap(&client_req_parts.headers);
 
+    // deal with data storage field
+    let mut package_name = String::new();
+    if let Some(p) = PACKAGE_NAME.get() {
+        package_name = p.clone();
+    }
+
+    let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
+    
+
     let doc = RequestInMONGO {
+        _id: None,
+        app: package_name.to_string(),
+        withquic: using_quic.clone(),
         uri: client_req_parts.uri.to_string(),
         method: client_req_parts.method.to_string(),
         version: req_version,
         header: req_hash_header,
         body: req_body_vec,
+        
+        bodytype: None,
+        bodyplaintext: None,
     };
+
 
     let db_col = get_database().await.collection("httpreq");
     db_col.insert_one(doc).await?;
-    
+
 
     // let req_proto = create_http_request_type(
     //     client_req_parts.uri.to_string(),
