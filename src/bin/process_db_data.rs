@@ -1,11 +1,9 @@
 use std::{collections::{HashMap, HashSet}, io::Read};
 
-use flate2::read::GzDecoder;
+use flate2::{bufread::DeflateDecoder, read::GzDecoder};
 use futures::StreamExt;
-use h3::client::new;
 use h3server::{RequestInCSV, RequestInMONGO};
 use mongodb::{ bson::{doc, oid::ObjectId}, options::{ ClientOptions, ServerApi, ServerApiVersion }, Client, Collection };
-use rustls::crypto::hash::Hash;
 
 use csv::Writer;
 use serde_json;
@@ -15,6 +13,15 @@ use serde_json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+
+    // get the package name
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        println!("need 2 args for the generating csv, the second arg as package name");
+        return Ok(());
+    }
+    let package_name = args[1].clone();
+
 
     let uri = "mongodb://localhost:27017";
     let mut client_options = ClientOptions::parse(uri).await?;
@@ -28,9 +35,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let my_coll: Collection<RequestInMONGO> = client.database("requestdb").collection("httpreq");
 
     
-    // 1. fill all data's bodytype
-    if false {
-        let mut cursor = my_coll.find(doc! {}).await?;
+    // 1. fill all data's bodytype with specific app name
+    if true {
+        let mut cursor = my_coll
+            .find(doc! {
+                "app": &package_name
+            }).await?;
 
         while let Some(Ok(req)) = cursor.next().await {
             if req.header.contains_key("content-encoding") {
@@ -48,11 +58,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                         ).await?;
                     }
 
+                } else if encoding == "deflate" {
+                    let body_clone = req.body.clone();
+                    let mut decoder = DeflateDecoder::new(&body_clone[..]);
+                    let mut text = vec![];
+                    if let Ok(_) = decoder.read_to_end(&mut text) {
+                        let bodytype = tree_magic_mini::from_u8(&text);
+                        my_coll.update_one(
+                            doc! { "_id": &req._id },
+                            doc! { "$set": { "bodytype": bodytype.to_string() } }
+                        ).await?;
+                    }
+                    
                 } else {
-                    my_coll.update_one(
-                        doc! { "_id": &req._id },
-                        doc! { "$set": { "bodytype": encoding } }
-                    ).await?;
+                    // my_coll.update_one(
+                    //     doc! { "_id": &req._id },
+                    //     doc! { "$set": { "bodytype": encoding } }
+                    // ).await?;
                 }
 
             } else {
@@ -72,24 +94,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // 2. get all HTTP3 doc
     let mut http3_cursor = my_coll.find(
         doc! {
+            "app": &package_name,
             "version": "HTTP/3",
+            // "withquic": true,
         }
     ).await?;
 
-    // 3. get all url from HTTP3 doc
+    // 3. get all url from HTTP3 doc, withquic as true inherently
     let mut http3_urls: HashSet<String> = HashSet::new();
     while let Some(Ok(req)) = http3_cursor.next().await {
+        // Nov 14 todo: filter out the url not specific to app: beacon, playstore, google ads
+        // if uri contains: ??? then continue
         http3_urls.insert(req.uri.clone());
+        match req.bodytype.as_deref() {
+            Some("application/gzip") => {
+                
+            },
+
+            Some("text/plain") => {
+                match String::from_utf8(req.body) {
+                    Ok(plain_text) => {
+                        my_coll.update_one(
+                            doc! { "_id": &req._id },
+                            doc! { "$set": { "bodyplaintext": plain_text } }
+                        ).await?;
+                    },
+                    Err(_) => {},
+                }
+            },
+
+            Some("application/octet-stream") => {
+
+            },
+
+            Some(&_) => { 
+                
+            },
+
+            None => {
+
+            },
+        }
     }
 
-    // 4. see if HTTP2 doc has same url
+    // 4. get doc with same url, in trail of withquic as false
     let mut common_urls: HashSet<String> = HashSet::new();
     let url_filter = doc! {
+        "app": &package_name,
         "uri": { "$in": Vec::from_iter(http3_urls.clone()) },
-        "version": { "$in": ["HTTP/2", "HTTP/1.1"] },
+        "withquic": false,
+        // "version": { "$in": ["HTTP/2", "HTTP/1.1"] },
     };
     let mut http2_cursor = my_coll.find(url_filter).await?;
-    
+    // plain text body of these doc
     while let Some(Ok(req)) = http2_cursor.next().await {
         common_urls.insert(req.uri.clone());
         // todo decode
@@ -131,68 +188,77 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("= = = = = = = = = = =");
 
 
-    // 5. get all corresponding HTTP3 doc
-    let mut http3_common_cursor = my_coll.find(
-        doc! {
-            "uri": { "$in": Vec::from_iter(common_urls.clone()) },
-            "version": "HTTP/3",
-        }
-    ).await?;
+    // 5. get all corresponding HTTP3 doc, get body plain text
+    // let mut http3_common_cursor = my_coll.find(
+    //     doc! {
+    //         "uri": { "$in": Vec::from_iter(common_urls.clone()) },
+    //         "version": "HTTP/3",
+    //     }
+    // ).await?;
 
-    while let Some(Ok(req)) = http3_common_cursor.next().await {
-        match req.bodytype.as_deref() {
-            Some("application/gzip") => {
+    // while let Some(Ok(req)) = http3_common_cursor.next().await {
+    //     match req.bodytype.as_deref() {
+    //         Some("application/gzip") => {
                 
-            },
+    //         },
 
-            Some("text/plain") => {
-                match String::from_utf8(req.body) {
-                    Ok(plain_text) => {
-                        my_coll.update_one(
-                            doc! { "_id": &req._id },
-                            doc! { "$set": { "bodyplaintext": plain_text } }
-                        ).await?;
-                    },
-                    Err(_) => {},
-                }
-            },
+    //         Some("text/plain") => {
+    //             match String::from_utf8(req.body) {
+    //                 Ok(plain_text) => {
+    //                     my_coll.update_one(
+    //                         doc! { "_id": &req._id },
+    //                         doc! { "$set": { "bodyplaintext": plain_text } }
+    //                     ).await?;
+    //                 },
+    //                 Err(_) => {},
+    //             }
+    //         },
 
-            Some("application/octet-stream") => {
+    //         Some("application/octet-stream") => {
 
-            },
+    //         },
 
-            Some(&_) => { 
+    //         Some(&_) => { 
                 
-            },
+    //         },
 
-            None => {
+    //         None => {
 
-            },
-        }
-    }
+    //         },
+    //     }
+    // }
 
     
     // 6. dump the matching http3 data into csv
     // at this time only write down those with plain text
-    let mut wtr = Writer::from_path("h2_h3_table.csv")?;
-    wtr.write_record(&[
-        "_id",
+    let data_dir = std::path::Path::new("csvdata");
+    // Create the data directory if it doesn't exist
+    if !data_dir.exists() {
+        std::fs::create_dir(data_dir)?;
+    }
+    let csv_name = format!("{}.csv", &package_name);
+    let file_path = data_dir.join(csv_name);
+    let mut wtr = Writer::from_path(file_path)?;
+    // wtr.write_record(&[
+    //     "_id",
 
-        "app",
-        "withquic",
+    //     "app",
+    //     "withquic",
     
-        "uri",
-        "method",
-        "version",
+    //     "uri",
+    //     "method",
+    //     "version",
         
-        "header",
-        "bodytype",
-        "bodyplaintext"
-    ])?;
+    //     "header",
+    //     "bodytype",
+    //     "bodyplaintext"
+    // ])?;
 
-    for u in Vec::from_iter(common_urls.clone()) {
+
+    for u in Vec::from_iter(http3_urls.clone()) {
         let mut h3_cursor = my_coll.find(
             doc! {
+                "app": &package_name,
                 "uri": u.clone(),
                 "version": "HTTP/3",
             }
@@ -216,8 +282,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let mut h2_cursor = my_coll.find(
             doc! {
+                "app": &package_name,
                 "uri": u.clone(),
-                "version": { "$in": ["HTTP/2", "HTTP/1.1"] },
+                // "version": { "$in": ["HTTP/2", "HTTP/1.1"] },
+                "withquic": false,
             }
         ).await?;
         while let Some(Ok(req)) = h2_cursor.next().await {
@@ -238,9 +306,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
 
     }
-
-
-    // todo: process http3 request for those not in common urls    
+    // finish csv writing
+    wtr.flush()?;
 
 
     Ok(())
