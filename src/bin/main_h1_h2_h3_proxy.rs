@@ -98,16 +98,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         .install_default()
         .expect("default provider already set elsewhere");
 
+
     // for tcp usage
     let tcp_tls_acceptor = get_h2_config()?;
+
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
     let tcp_listener = TcpListener::bind("172.30.143.95:443").await?;
     println!("Tcp binding finished");
 
+
     PACKAGE_NAME.set(args[2].to_string()).expect("Failed to set package_name for current proxy work");
 
     if args[1] == "h2h3" {
-        USING_QUIC.set(true);
+        USING_QUIC.set(true)?;
         // set tls for quic
         let server_config = get_h3_config()?;
         let endpoint = quinn::Endpoint::server(
@@ -122,7 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         let quic_task = tokio::spawn(process_quic_request(endpoint));
         let _ = tokio::join!(tcp_tls_task, quic_task);
     } else {
-        USING_QUIC.set(false);
+        USING_QUIC.set(false)?;
         let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
         let _ = tcp_tls_task.await;
     }
@@ -277,7 +280,7 @@ async fn handle_http2_tunnel(
         bodyplaintext: None,
     };
 
-    println!("in connecting db");
+    println!("in connecting db h2");
     let db_col = get_database().await.collection("httpreq");
     match db_col.insert_one(doc).await {
         Ok(rst) => { println!("insert rst: {:?}", rst) },
@@ -297,7 +300,11 @@ async fn handle_http2_tunnel(
     
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
+    println!("request sent h2");
+    println!("{:?}", req_to_server);
     let server_resp = server_send.send_request(req_to_server).await?;
+    println!("resp h2");
+    println!("{:?}", server_resp);
 
     // let server_resq = server_send.send_request(client_req).await?;
     // todo!("convert the incoming to bytes");
@@ -361,11 +368,12 @@ async fn handle_http1_tunnel(
         bodyplaintext: None,
     };
 
-
+    println!("in connecting db h1");
     let db_col = get_database().await.collection("httpreq");
-    db_col.insert_one(doc).await?;
-
-
+    match db_col.insert_one(doc).await {
+        Ok(rst) => { println!("insert rst: {:?}", rst) },
+        Err(e) => { println!("insert err: {}", e) },
+    };
 
 
     // let req_proto = create_http_request_type(
@@ -383,62 +391,69 @@ async fn handle_http1_tunnel(
     // println!("h1 request part: {:?}\n h1 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
+    println!("request sent h1");
+    println!("{:?}", req_to_server);
+    
     let server_resp = server_sender.send_request(req_to_server).await?;
+    println!("resp h1");
+    println!("{:?}", server_resp);
+
 
     Ok(server_resp)
+    
 }
 
 
 
 
-async fn proxy_tcp_tls_naive(
-    tcp_stream: TcpStream,
-    tls_acceptor: TlsAcceptor
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    match tls_acceptor.accept(tcp_stream).await {
-        Ok(client_tls_stream) => {
-            // obtain domain name from tls connection
-            let server_name_option = client_tls_stream.get_ref().1.server_name();
+// async fn proxy_tcp_tls_naive(
+//     tcp_stream: TcpStream,
+//     tls_acceptor: TlsAcceptor
+// ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//     match tls_acceptor.accept(tcp_stream).await {
+//         Ok(client_tls_stream) => {
+//             // obtain domain name from tls connection
+//             let server_name_option = client_tls_stream.get_ref().1.server_name();
 
-            if let Some(server_name) = server_name_option {
-                // println!("tcp_tls to server name: {}", server_name);
+//             if let Some(server_name) = server_name_option {
+//                 // println!("tcp_tls to server name: {}", server_name);
                 
-                // build connection to server
-                let root_store = RootCertStore {
-                    roots: webpki_roots::TLS_SERVER_ROOTS.into(),
-                };
-                let mut proxy_config = rustls::ClientConfig::builder()
-                    .with_root_certificates(root_store)
-                    .with_no_client_auth();
-                proxy_config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
+//                 // build connection to server
+//                 let root_store = RootCertStore {
+//                     roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+//                 };
+//                 let mut proxy_config = rustls::ClientConfig::builder()
+//                     .with_root_certificates(root_store)
+//                     .with_no_client_auth();
+//                 proxy_config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
 
-                let server_port = String::from_str(server_name)? + ":443";
-                let proxy_connector = TlsConnector::from(Arc::new(proxy_config));
-                let server_domain = pki_types::ServerName::try_from(server_name)
-                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
-                    .to_owned();
+//                 let server_port = String::from_str(server_name)? + ":443";
+//                 let proxy_connector = TlsConnector::from(Arc::new(proxy_config));
+//                 let server_domain = pki_types::ServerName::try_from(server_name)
+//                     .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid dnsname"))?
+//                     .to_owned();
 
-                let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
-                let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
+//                 let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
+//                 let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
 
-                // wire the client-proxy, and proxy-server
-                let (mut to_client_read, mut to_client_write) = split(client_tls_stream);
-                let (mut to_server_read, mut to_server_write) = split(server_tls_stream);
+//                 // wire the client-proxy, and proxy-server
+//                 let (mut to_client_read, mut to_client_write) = split(client_tls_stream);
+//                 let (mut to_server_read, mut to_server_write) = split(server_tls_stream);
 
-                let upload_fut = copy(&mut to_client_read, &mut to_server_write);
-                let download_fut = copy(&mut to_server_read, &mut to_client_write);
+//                 let upload_fut = copy(&mut to_client_read, &mut to_server_write);
+//                 let download_fut = copy(&mut to_server_read, &mut to_client_write);
 
-                let _ = tokio::join!(upload_fut, download_fut);
+//                 let _ = tokio::join!(upload_fut, download_fut);
 
-                // println!("tcp tls stream done");
-            }
-        }
+//                 // println!("tcp tls stream done");
+//             }
+//         }
 
-        Err(e) => { println!("TLS accepted error on tcp: {}", e); }
-    }
+//         Err(e) => { println!("TLS accepted error on tcp: {}", e); }
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 
 async fn process_quic_request(endpoint: Endpoint) {
@@ -512,6 +527,9 @@ async fn accept_bi_streams(
         // println!("h3 client request: {:?}", client_req_stream.0);
         let req_parts = client_req_stream.0.clone().into_parts().0;
 
+        println!("h3 send request");
+        println!("{:?}", client_req_stream.0);
+
         let req_server_stream = send_request.send_request(client_req_stream.0).await?;
         
         tokio::spawn(
@@ -573,9 +591,12 @@ where T: BidiStream<Bytes> {
         bodyplaintext: None,
     };
 
-
+    println!("in connecting db h3");
     let db_col = get_database().await.collection("httpreq");
-    db_col.insert_one(doc).await?;
+    match db_col.insert_one(doc).await {
+        Ok(rst) => { println!("insert rst: {:?}", rst) },
+        Err(e) => { println!("insert err: {}", e) },
+    };
 
 
     // let req_proto = create_http_request_type(
@@ -590,7 +611,13 @@ where T: BidiStream<Bytes> {
     // global_write_file(req_proto_dump).await?;
 
     let server_resp = to_server_stream.recv_response().await?;
+
+    println!("resp h3");
+    println!("{:?}", server_resp);
+
     to_client_stream.send_response(server_resp).await?;
+
+    
 
     while let Some(mut chunk) = to_server_stream.recv_data().await? {
         let data = chunk.copy_to_bytes(chunk.remaining());

@@ -1,9 +1,9 @@
-use std::{collections::{HashMap, HashSet}, io::Read};
+use std::{collections::HashSet, io::Read};
 
 use flate2::{bufread::DeflateDecoder, read::GzDecoder};
 use futures::StreamExt;
 use h3server::{RequestInCSV, RequestInMONGO};
-use mongodb::{ bson::{doc, oid::ObjectId}, options::{ ClientOptions, ServerApi, ServerApiVersion }, Client, Collection };
+use mongodb::{ bson::doc, options::{ ClientOptions, ServerApi, ServerApiVersion }, Client, Collection };
 
 use csv::Writer;
 use serde_json;

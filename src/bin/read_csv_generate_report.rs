@@ -1,7 +1,7 @@
 use csv::ReaderBuilder;
 use once_cell::sync::OnceCell;
 
-use core::fmt;
+// use core::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::sync::Arc;
@@ -20,22 +20,34 @@ enum DiffType {
 struct ReportDiff {
     diff: DiffType,
     diff_header: String,
-    h2_vs: HashSet<String>,
+    // h2_vs: HashSet<String>,
     h3_vs: HashSet<String>,
 }
 
+static PACKAGE_NAME: OnceCell<String> = OnceCell::new();
 
 
 
 static FILE_HANDLE: OnceCell<Arc<File>> = OnceCell::new();
 
 fn init_file() -> Arc<File> {
+
+    let package_name = PACKAGE_NAME.get().expect("failed to get package name in init file");
+
+    let report_dir = std::path::Path::new("report");
+    // Create the data directory if it doesn't exist
+    if !report_dir.exists() {
+        std::fs::create_dir(report_dir).expect("failed to create report dir");
+    }
+    let txt_name = format!("{}.txt", package_name);
+    let file_path = report_dir.join(txt_name).to_string_lossy().to_string();
+
     let file = OpenOptions::new()
         .create(true)
         .write(true)
         .append(true)
-        .open("h2_h3_report.txt")
-        .expect("Failed to open file");
+        .open(file_path)
+        .expect("Failed to open report txt file");
 
     Arc::new(file)
 }
@@ -71,55 +83,79 @@ fn read_csv(file_path: &str) -> Result<Vec<RequestInCSV>, Box<dyn Error>> {
 }
 
 
-
-
-fn analyze_group(reqs_vec: &Vec<RequestInCSV>) {
-    let mut app_name_map: HashMap<String, Vec<RequestInCSV>> = HashMap::new();
+fn analyze_requests(reqs_vec: Vec<RequestInCSV>) {
+    let mut group_uri = "".to_string();
+    let mut common_uri_vec: Vec<RequestInCSV> = Vec::new();
+    // get group of requests with same url:
+    // compare requests with same url, inherently same app from csv
     for r in reqs_vec {
-        
-        let r_clone = RequestInCSV {
-            _id: r._id.clone(),
-            app: r.app.clone(),
-            withquic: r.withquic.clone(),
-            uri: r.uri.clone(),
-            method: r.method.clone(),
-            version: r.version.clone(),
-            header: r.header.clone(),
-            bodytype: r.bodytype.clone(),
-            bodyplaintext: r.bodyplaintext.clone(),
-        };
-
-        match app_name_map.get_mut(&r.app.clone()) {
-            Some(v) => { v.push(r_clone); },
-            None => {
-                let mut v = Vec::new();
-                v.push(r_clone);
-                app_name_map.insert(r.app.clone(), v);
-            },
+        if r.uri == group_uri {
+            common_uri_vec.push(r);
+        } else {
+            if common_uri_vec.len() > 0 { compare_h2_h3_request(&common_uri_vec); }
+            common_uri_vec.clear();
+            group_uri = r.uri.clone();
+            common_uri_vec.push(r);
         }
     }
-
-    // compare difference and log
-    for k in app_name_map.keys() {
-        let req_group = app_name_map.get(k)
-            .expect("Failed Comparision for accessing request group");
-        compare_h2_h3_request(req_group);
-    }
 }
+
+
+
+
+// fn analyze_group(reqs_vec: &Vec<RequestInCSV>) {
+//     let mut app_name_map: HashMap<String, Vec<RequestInCSV>> = HashMap::new();
+//     for r in reqs_vec {
+        
+//         let r_clone = RequestInCSV {
+//             _id: r._id.clone(),
+//             app: r.app.clone(),
+//             withquic: r.withquic.clone(),
+//             uri: r.uri.clone(),
+//             method: r.method.clone(),
+//             version: r.version.clone(),
+//             header: r.header.clone(),
+//             bodytype: r.bodytype.clone(),
+//             bodyplaintext: r.bodyplaintext.clone(),
+//         };
+
+//         match app_name_map.get_mut(&r.app.clone()) {
+//             Some(v) => { v.push(r_clone); },
+//             None => {
+//                 let mut v = Vec::new();
+//                 v.push(r_clone);
+//                 app_name_map.insert(r.app.clone(), v);
+//             },
+//         }
+//     }
+
+//     // compare difference and log
+//     for k in app_name_map.keys() {
+//         let req_group = app_name_map.get(k)
+//             .expect("Failed Comparision for accessing request group");
+//         compare_h2_h3_request(req_group);
+//     }
+// }
 
 
 /// req_group for requests with same uri, while running the same app
 fn compare_h2_h3_request(req_group: &Vec<RequestInCSV>) {
 
-    let app_using = req_group.get(0).unwrap().app.clone();
+    let app_using = PACKAGE_NAME.get().expect("failed to get PACKAGE_NAME in report").to_string();
+
     let uri_using = req_group.get(0).unwrap().uri.clone();
     
     let mut h2_vec: Vec<RequestInCSV> = Vec::new();
     let mut h3_vec: Vec<RequestInCSV> = Vec::new();
 
     for r in req_group {
-        if r.version == "HTTP/3" {h3_vec.push(r.clone());}
-        else {h2_vec.push(r.clone());}
+        if r.version == "HTTP/3" {
+            h3_vec.push(r.clone());
+        } else if !r.withquic {
+            h2_vec.push(r.clone());
+        } else {
+            continue;
+        }
     }
 
     // expect difference:
@@ -153,6 +189,7 @@ fn compare_h2_h3_request(req_group: &Vec<RequestInCSV>) {
     
     for (k, h3_vs) in h3_header_map.iter() {
         if h2_header_map.contains_key(k) {
+            // check for same key in h2, h3 header, if the value is different
             let h2_vs = h2_header_map.get(k).expect("Error impossible");
             for v in h3_vs {
                 if !h2_vs.contains(v) {
@@ -163,7 +200,7 @@ fn compare_h2_h3_request(req_group: &Vec<RequestInCSV>) {
                     let diff_part = ReportDiff {
                         diff: DiffType::DIFFERENT,
                         diff_header: k.clone(),
-                        h2_vs: h2_vs.clone(),
+                        // h2_vs: h2_vs.clone(),
                         h3_vs: diff_h3_vs,
                     };
                     diff_vec.push(diff_part);
@@ -171,11 +208,11 @@ fn compare_h2_h3_request(req_group: &Vec<RequestInCSV>) {
                 }
             }
         } else {
-            // todo
+            // check if a key only exists in h3, not in h2
             let diff_part = ReportDiff {
                 diff: DiffType::DISTINCT,
                 diff_header: k.clone(),
-                h2_vs: HashSet::new(),
+                // h2_vs: HashSet::new(),
                 h3_vs: h3_vs.clone(),
             };
             diff_vec.push(diff_part);
@@ -206,7 +243,7 @@ fn compare_h2_h3_request(req_group: &Vec<RequestInCSV>) {
             let diff_part = ReportDiff {
                 diff: DiffType::DISTINCT,
                 diff_header: "body".to_string(),
-                h2_vs: h2_body_set.clone(),
+                // h2_vs: h2_body_set.clone(),
                 h3_vs: h3_b,
             };
             diff_vec.push(diff_part);
@@ -257,32 +294,31 @@ fn write_group_diff(app_using: String, uri_using: String, diff_vec: Vec<ReportDi
         write_to_file("\n\n= = = = = = = = = = = = = = = = = = = =\n\n").expect("Write failed 9");
     }
 
-    write_to_file("\n\n+ + + + + + + + + + + + + + + + + + + +\n\n").expect("Write failed 9");
+    write_to_file("\n\n+ + + + + + + + + + + + + + + + + + + +\n\n").expect("Write failed 10");
     
 }
 
 
 
 
-fn analyze_requests(reqs_vec: Vec<RequestInCSV>) {
-    let mut group_uri = "".to_string();
-    let mut common_uri_vec: Vec<RequestInCSV> = Vec::new();
-    for r in reqs_vec {
-        if r.uri == group_uri {
-            common_uri_vec.push(r);
-        } else {
-            analyze_group(&common_uri_vec);
-            common_uri_vec.clear();
-            group_uri = r.uri.clone();
-            common_uri_vec.push(r);
-        }
-    }
-}
-
-
 fn main() {
-    let file_path = "h2_h3_table.csv";
-    match read_csv(file_path) {
+
+    // get package name
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        println!("need 2 args for the generating csv, the second arg as package name");
+        return;
+    }
+    let package_name = args[1].clone();
+    PACKAGE_NAME.get_or_init(|| {
+        package_name.clone()
+    });
+
+    // get csv file
+    let data_dir = std::path::Path::new("csvdata");
+    let csv_name = format!("{}.csv", &package_name);
+    let csv_path = data_dir.join(csv_name);
+    match read_csv(&csv_path.to_string_lossy().to_string()) {
         Ok(records) => {
             println!("Complete deserializing csv table");
             // todo: add progress bar if you can
