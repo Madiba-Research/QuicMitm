@@ -316,7 +316,7 @@ fn main() {
 
     // get csv file
     let data_dir = std::path::Path::new("csvdata");
-    let csv_name = format!("{}.csv", &package_name);
+    let csv_name = format!("{}.csv.filtered", &package_name);
     let csv_path = data_dir.join(csv_name);
     match read_csv(&csv_path.to_string_lossy().to_string()) {
         Ok(records) => {

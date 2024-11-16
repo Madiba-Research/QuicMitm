@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     // for tcp usage
     let tcp_tls_acceptor = get_h2_config()?;
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    let tcp_listener = TcpListener::bind("172.30.143.91:443").await?;
+    let tcp_listener = TcpListener::bind("172.30.143.95:443").await?;
     println!("Tcp binding finished");
 
     // set tls for quic
@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let endpoint = quinn::Endpoint::server(
         server_config,
         // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 91)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 95)), 443),
     )?;
     println!("Quic binding finished");
 

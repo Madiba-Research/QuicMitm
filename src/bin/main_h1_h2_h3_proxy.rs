@@ -5,7 +5,7 @@ use h3::quic::BidiStream;
 
 use h3server::{headers_to_hashmap, version_to_string, RequestInMONGO};
 // use h3server::create_http_request_type;
-use http::request::Parts;
+use http::{request::Parts, Response};
 use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
@@ -70,7 +70,7 @@ async fn get_mongo_client() -> Arc<Client> {
 }
 
 async fn get_database() -> Database {
-    get_mongo_client().await.database("requestdb")
+    get_mongo_client().await.database("alitest")
 }
 
 static USING_QUIC: OnceCell<bool> = OnceCell::const_new();
@@ -249,6 +249,9 @@ async fn handle_http2_tunnel(
     client_req: hyper::Request<hyper::body::Incoming>,
     mut server_send: hyper::client::conn::http2::SendRequest<Full<Bytes>>,
 ) -> Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>> {
+
+    // Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>>
+    // Result<hyper::Response<Full<Bytes>>, Box<dyn std::error::Error + Sync + Send>>
     
     // write into mongodb
     let (req_parts, req_body) = client_req.into_parts();
@@ -287,32 +290,26 @@ async fn handle_http2_tunnel(
         Err(e) => { println!("insert err: {}", e) },
     };
 
-    // let req_proto = create_http_request_type(
-    //     req_parts.uri.to_string(),
-    //     req_parts.method.to_string(),
-    //     format!("{:?}", req_parts.version),
-    //     format!("{:?}", req_parts.headers),
-
-    //     req_body_byte.clone()
-    // );
-    // let req_proto_dump = req_proto.encode_to_vec();
-    // global_write_file(req_proto_dump).await?;
-    
-
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
-    println!("request sent h2");
-    println!("{:?}", req_to_server);
-    let server_resp = server_send.send_request(req_to_server).await?;
-    println!("resp h2");
-    println!("{:?}", server_resp);
+    // println!("request sent h2");
+    // println!("{:?}", req_to_server);
 
-    // let server_resq = server_send.send_request(client_req).await?;
-    // todo!("convert the incoming to bytes");
-    // let res_collected = server_res.into_body().collect().await?;
-    // let res_bytes = res_collected.to_bytes();
+    let server_resp = server_send.send_request(req_to_server).await?;
+    // println!("resp h2");
+    // println!("{:?}", server_resp);
 
     Ok(server_resp)
+
+    // let server_resp = server_send.send_request(req_to_server).await?;
+    // let server_resp = server_resp.into_parts();
+    // let res_collected = server_resp.1.collect().await?;
+    // let res_bytes = res_collected.to_bytes();
+    // println!("h2 response body: {:?}", String::from_utf8(res_bytes.to_vec()));
+    // let new_server_resp = Response::from_parts(server_resp.0, Full::new(res_bytes));
+
+    // Ok(new_server_resp)
 }
+
 
 async fn handle_http1_tunnel(
     client_req: hyper::Request<hyper::body::Incoming>,
@@ -376,27 +373,16 @@ async fn handle_http1_tunnel(
     };
 
 
-    // let req_proto = create_http_request_type(
-    //     req_parts.uri.to_string(),
-    //     req_parts.method.to_string(),
-    //     format!("{:?}", req_parts.version),
-    //     format!("{:?}", req_parts.headers),
-
-    //     req_body_byte.clone()
-    // );
-    // let req_proto_dump = req_proto.encode_to_vec();
-    // global_write_file(req_proto_dump).await?;
-
     // let req_body_vec = req_body_byte.to_vec();
     // println!("h1 request part: {:?}\n h1 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
-    println!("request sent h1");
-    println!("{:?}", req_to_server);
+    // println!("request sent h1");
+    // println!("{:?}", req_to_server);
     
     let server_resp = server_sender.send_request(req_to_server).await?;
-    println!("resp h1");
-    println!("{:?}", server_resp);
+    // println!("resp h1");
+    // println!("{:?}", server_resp);
 
 
     Ok(server_resp)
@@ -527,8 +513,8 @@ async fn accept_bi_streams(
         // println!("h3 client request: {:?}", client_req_stream.0);
         let req_parts = client_req_stream.0.clone().into_parts().0;
 
-        println!("h3 send request");
-        println!("{:?}", client_req_stream.0);
+        // println!("h3 send request");
+        // println!("{:?}", client_req_stream.0);
 
         let req_server_stream = send_request.send_request(client_req_stream.0).await?;
         
@@ -612,8 +598,8 @@ where T: BidiStream<Bytes> {
 
     let server_resp = to_server_stream.recv_response().await?;
 
-    println!("resp h3");
-    println!("{:?}", server_resp);
+    // println!("resp h3");
+    // println!("{:?}", server_resp);
 
     to_client_stream.send_response(server_resp).await?;
 

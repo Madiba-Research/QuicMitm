@@ -60,8 +60,6 @@ content-encoding:
 For Nov 6, we only process gzip
 
 
-problem with proxy
-Request { method: POST, uri: https://quake-pa.googleapis.com:443/google.internal.android.location.quake.v1.QuakeApiService/NodeOnline, version: HTTP/2.0, headers: {"user-agent": "grpc-java-okhttp/1.68.0-SNAPSHOT", "content-type": "application/grpc", "te": "trailers", "x-android-package": "com.google.android.gms", "x-android-cert": "38918A453D07199354F8B19AF05EC6562CED5788", "x-goog-skey": "4cc91a4", "x-goog-spatula":
 
 
 

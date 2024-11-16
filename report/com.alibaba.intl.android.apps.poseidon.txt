@@ -1,0 +1,3380 @@
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.en_US.4TzK6ic_TxU.es5.O/ck=boq-identity.OAuthUi.Fi3xvc3UVh0.L.B1.O/am=6GBOMYP4c__fDShAAAAAAAAAAAAwAACEAQ/d=1/exm=A1yn5d,A7fCU,DzeMwe,E87wgc,EEDORb,EFQ78c,IZT63,K0PMbc,K1ZKnb,KUM7Z,L9OGUe,LDQI,LEikZe,MI6k7c,Mlhmy,MpJwZc,NwH0H,OTA3Ae,OmgaI,P6sQOc,PHUIyb,PrPYRd,Rkm0ef,RqjULd,SCuOPb,SD8Jgb,SpsfSb,Tbb4sb,UUJqVe,Uas9Hd,Ug7Xab,WpP9Yc,YHI3We,YTxL4,YgOFye,ZDZcre,ZfAoz,_b,_tp,aC1iue,aurFic,bTi8wc,byfTOb,cYShmd,ebZ3mb,f8Gu1e,fKUV3e,gychg,hKSk3e,hc6Ubd,kWgXee,kjKdXe,lazG7b,lsjVmc,ltDFwf,lwddkf,m9oV,mI3LFb,mdR7q,n73qwf,ovKuLd,p3hmRc,qPYxq,qmdT9,rmumx,siKnQd,soHxf,vHEMJe,vfuNJf,vjKJJ,w9hDv,ws9Tlc,xQtZb,xUdipf,xiZRqc,y5vRwf,yDVVkb,yRXbo,ywOR5c,z0u0L,zbML3c,ziZ8Mc,zr1jrb,zy0vNb/excm=_b,_tp,attributesview/ed=1/wt=2/ujg=1/rs=AOaEmlFDHjCev7H5CnzFT-7vW5LyzAQE9w/ee=ASJRFf:DAnQ7e;Al0B8:kibjWe;DaIJ8c:iAskyc;EVNhjf:pw70Gc;EkYFhd:GwYlN;EmZ2Bf:zr1jrb;JsbNhc:Xd8iUd;K5nYTd:ZDZcre;LBgRLc:XVMNvd;Me32dd:MEeYgc;NPKaK:PVlQOd;NSEoX:lazG7b;Pjplud:EEDORb;QGR0gd:Mlhmy;SMDL4c:K0PMbc;SNUn3:ZwDk9d;ScI3Yc:e7Hzgb;UpnZUd:nnwwYc;Uvc8o:VDovNc;XdiAjb:NLiXbe;YIZmRd:A1yn5d;a56pNe:JEfCwb;cEt90b:ws9Tlc;dIoSBb:SpsfSb;dowIGb:ebZ3mb;eBAeSb:zbML3c;iFQyKf:vfuNJf;lOO0Vd:OTA3Ae;nAFL3:NTMZac;nTuGK:JKNPM;oGtAuc:sOXFj;oSUNyd:K0PMbc;oXZmbc:tUnxGc;pXdRYb:L9OGUe;qafBPd:yDVVkb;qddgKe:xQtZb;vNjB7d:YTxL4;wR5FRb:siKnQd;yxTchf:KUM7Z/m=Wt6vjf,hhhU8,FCpbqb,WhJNk
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://ssl.gstatic.com/accounts/static/_/js/k=gaia.gaiafe_materialnext.en.uPi65rRjU18.O/am=OBgQALw--ej__3_-IURJIDwEAAAAAAAAAGCsBABAGCUhgQY/d=0/rs=ABkqax1GE-hAhb8Sz0n8T734cnhmJMdwwQ/m=iAskyc,ziXSP
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://googleads.g.doubleclick.net/pagead/drt/m?is_lat=0
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=1, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+com.google.android.gms/244233029 (Linux; U; Android 13; en_US; Pixel 6; Build/TQ3A.230901.001; Cronet/131.0.6738.0)
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: authorization
+
+Captured value of this header:
+Bearer ya29.m.CqkEAQ1IaZivmEsZV4LEtUeUpnjyg1FaDGgDgfQy9FwO_Gq6pAGyjlphBFGctwbA2F9fVC9BQKyN9S-r_Op8V-GMSZZarelIQqplco1xsTp45ALBZ5umH2pbiUzcrqAh8j6vKiEWvvySb28LHSRw7Y9DL2Ks7EcXHI0YO8tg5DUKlEANrX2vb9B4S_gfSOwi-8K7AJ9h86IZsskHkGfv41srPxn-UEuTcQZ2qI0F56Ft4twFt9qkVjm3MipVPNX3zaLRecf4v6vWqGflS5Z6Cp9HpwuWh_8xqU0rkPqSb9eViEJffQbVTJ86CBtpLhYz-dJnf_Y4m_2aFhzy0REKonz3L48vfcSQGJKbp9EWLJDTKgnRp4ZOlHN1CbICv-rXAcQg7J1ZOjB6yQRt_H41sgItNCv0X0gjvXWMIA0olSy-AfWj-q053ZnPVu4cHna5X0JjiudxQZV3M1UBAB8VMgCEeZU4WIK124LOfLO1i-fCc9d35xQzEVvxb2XczzMONW9h4EvXRnuyG7SF5DX2BaE0vKgo6_2UZ0aak5I42XM1aGtDFO5d3xI7u9xq4JEdNYT4CPYIwTdVrME7GgSvMVnhxBXPEptIbRB0xTXYoAxHhTfpyK5DULXyCyjmpDoMlSIqGmISU8CF0uxkPyFLN4FP74_3ylsDYX06kscZ8gNpTs2segORMFHJxJWA4DWCB-GrXXwrtYfnHBL9U8q8JPx4vzgiHFfxixu1chINCAESBgoBYBDiMxiWFxogiKIzdp-50nklHLrd3H8Nlh5Igcp4uduUg-iYJIrIDqkiAggBKithQ2dZS0FmNFNBUk1TRlFIR1gyTWl2TVE2c2lLdmhQQW5DMWZXSDdZdVZn
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://play.google.com/log?hasfast=true&auth=SAPISIDHASH+40f4f12cc1783e115f976006daf7fabf8dbd1e54&authuser=0&format=json
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+empty
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=4, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-length
+
+Captured value of this header:
+932
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzVUy_9nmTAJrTh6Y59BviayBrvaqTS7_DlkOxoh3gZRoTVv8XvnjxYEJLb2PPz-ONqD
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: origin
+
+Captured value of this header:
+https://accounts.google.com
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-type
+
+Captured value of this header:
+text/plain;charset=UTF-8
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+[[1,null,null,null,null,null,null,null,null,null,[null,null,null,null,"en-US",null,null,null,[[["Android WebView","129"],["Not=A?Brand","8"],["Chromium","129"]],1,"Android","13.0.0","","Pixel 6","129.0.6668.100"],[3,1,0,0,0]]],558,[["1730759133000",null,null,null,null,null,null,"[[null,[1,\"accounts.google.com/signin/oauth/id\",null,[\"\"],0]],\"-1133702689114949924\",3,[null,\"S-1224172880:1730759132638366\"]]",null,null,null,null,null,null,18000,null,null,null,null,null,1],["1730759133000",null,null,null,null,null,null,"[[[307,64002,null,null,null,null,null,null,null,null,null,null,\"accounts.google.com/signin/oauth/id\"]],\"-1133702689114949924\",3,[null,\"S-1224172880:1730759132638366\"]]",null,null,null,null,null,null,18000,null,null,null,null,null,2]],"1730759135396",null,null,null,null,null,null,null,null,null,null,null,null,null,[[null,[null,null,null,null,null,null,null,null,null,null,null,null,128566913]],9]]
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://ssl.gstatic.com/accounts/static/_/js/k=gaia.gaiafe_materialnext.en.uPi65rRjU18.O/am=OBgQALw--ej__3_-IURJIDwEAAAAAAAAAGCsBABAGCUhgQY/d=0/rs=ABkqax1GE-hAhb8Sz0n8T734cnhmJMdwwQ/m=sy79,sy78,ijDOT,wRkuv,zSBR2e,wGM7Jc,kRGwK,FHru6e,Tbb4sb
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.en_US.4TzK6ic_TxU.es5.O/ck=boq-identity.OAuthUi.Fi3xvc3UVh0.L.B1.O/am=6GBOMYP4c__fDShAAAAAAAAAAAAwAACEAQ/d=1/exm=DzeMwe,E87wgc,EFQ78c,IZT63,K0PMbc,K1ZKnb,KUM7Z,L9OGUe,LDQI,LEikZe,MI6k7c,MpJwZc,PHUIyb,PrPYRd,Rkm0ef,SCuOPb,SD8Jgb,SpsfSb,Tbb4sb,UUJqVe,Uas9Hd,WpP9Yc,YHI3We,YTxL4,YgOFye,_b,_tp,aC1iue,bTi8wc,byfTOb,cYShmd,f8Gu1e,hKSk3e,hc6Ubd,kjKdXe,lazG7b,lsjVmc,ltDFwf,lwddkf,m9oV,mI3LFb,mdR7q,n73qwf,qPYxq,qmdT9,rmumx,siKnQd,soHxf,vHEMJe,vfuNJf,vjKJJ,ws9Tlc,xQtZb,xiZRqc,y5vRwf,yRXbo,ywOR5c,z0u0L,zbML3c,ziZ8Mc,zr1jrb,zy0vNb/excm=_b,_tp,attributesview/ed=1/wt=2/ujg=1/rs=AOaEmlFDHjCev7H5CnzFT-7vW5LyzAQE9w/ee=ASJRFf:DAnQ7e;Al0B8:kibjWe;DaIJ8c:iAskyc;EVNhjf:pw70Gc;EkYFhd:GwYlN;EmZ2Bf:zr1jrb;JsbNhc:Xd8iUd;K5nYTd:ZDZcre;LBgRLc:XVMNvd;Me32dd:MEeYgc;NPKaK:PVlQOd;NSEoX:lazG7b;Pjplud:EEDORb;QGR0gd:Mlhmy;SMDL4c:K0PMbc;SNUn3:ZwDk9d;ScI3Yc:e7Hzgb;UpnZUd:nnwwYc;Uvc8o:VDovNc;XdiAjb:NLiXbe;YIZmRd:A1yn5d;a56pNe:JEfCwb;cEt90b:ws9Tlc;dIoSBb:SpsfSb;dowIGb:ebZ3mb;eBAeSb:zbML3c;iFQyKf:vfuNJf;lOO0Vd:OTA3Ae;nAFL3:NTMZac;nTuGK:JKNPM;oGtAuc:sOXFj;oSUNyd:K0PMbc;oXZmbc:tUnxGc;pXdRYb:L9OGUe;qafBPd:yDVVkb;qddgKe:xQtZb;vNjB7d:YTxL4;wR5FRb:siKnQd;yxTchf:KUM7Z/m=p3hmRc,RqjULd
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://accounts.google.com/signin/oauth/id?authuser=0&part=AJi8hAPDM4FSn4HiRnmDO8MrIzfr8OYMOioqivA0ruon0fO4uvmPHFifs1M9q3XbM_t5QcPMmD_a2FkqUFUE1RgVgPv9nzwekfJ5fWSt5cEIiFpnCqnAHvvbDdprM33eLby7U9vOnxZoHX--hptMWLPFdf-C_u5X-frNZdexpY4Pt2ACjWyCZc6EEcnADUEaoilQVfElEKLnu_NFG9y4LWuOlNjo5sT1xWxF8iisNP9Ldg4WBT1i7qbrrLKeqI2kn0EFBDeyKJS5G9_eYfgxcr14PTyhidlfTZXUPsiasPSQoLt-R0SH_srp_YZ42DtViO85cA2PhV_BM40rOrLJH9JuaNsncZnSeuIEKNzPg9j5vTiSqf817Z9CxRbo9oCOsEkavqQU0Gwe8K8viYI3o8JgYR_CWZo-pBxda_HH3AgSwYufdphFXyzst6f9HfDsGrHG2ufYnq1B9D5ztRNXYpfhJ-YnhCzrcGoVjwFdxyzs-Ly3By-q6TNlK3rjfTJpOaQQ90hGHFmqR-0vWx5GcCKOkrqoWcfpCM4ZsFibMSnAgbwrKuKwHp7VcHHX_HAmOy0hTQhGuFn-pFyVhCMZWesOq0yPBjQj54UZgm-vqhjI3Q7iZVoyjyF0gYrdhLBeHaxsF51yuPED_X9rlHgnGFpc2zcgVlYURG5-vFZNO9WxADjPJDXbd2-I0qjsB-eDXL3atQGzbz8jYWg1D7iLY6yRsfayupgtyVJLYgIvkHR68h7jh0IK3Uxf76OnNiwZ0Z-rhNoTsz_6RfL9Wn6UjsmPwgKv2iprUjJq6fgxdVglPEXs-UkpsAJNB9T5WH-soFJSv3NsCQGJKEC6bA3OVLjYCryYKAr9pOTAIo89KzgI6NRPED7ha5ZCSlvPgrMYtUlinbCcxHuDgd-IQL0htTNC-KlJGEby0DrKW_NPuYAHnBj9VCMQaFaomKrb2E8VVQnYd4mcURk7&flowName=GeneralOAuthFlow&android=1&android_options=CAMQAQ&color_scheme=dark&hl=en-US&as=m4yhhGnL8i50qN6FqfgVog&client_id=314775841274-dq5opth6n9i3fi202adu09bcpb3old1u.apps.googleusercontent.com
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+document
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+none
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzUHSVg1sB5hULJJ_C87Dohbnx5YZciLy96kv6xjKv5ZuLA8mmlWrtQ1ikbQN2Xgd8Ur
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+navigate
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=0, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: upgrade-insecure-requests
+
+Captured value of this header:
+1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-user
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://play.google.com/log?format=json&hasfast=true&authuser=0
+
+http3 request has distinct header:
+
+Http3 specific Header: x-goog-authuser
+
+Captured value of this header:
+0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-type
+
+Captured value of this header:
+text/plain;charset=UTF-8
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+empty
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: authorization
+
+Captured value of this header:
+SAPISIDHASH 40f4f12cc1783e115f976006daf7fabf8dbd1e54
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzVTzFb-k-g24IOjUHho5le00vCJ-ciyjIMvT6U8dcC4IxQkPJ-QnFV-LgWJHi2iLsl4
+__Secure-3PSIDCC=AKEyXzU5i3w01bZR2CU7gksoQipltCFZovWqYVN-08t2AzBfim3Ozp84-oXcT-0k5iDLUyjC
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=1, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: origin
+
+Captured value of this header:
+https://accounts.google.com
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-length
+
+Captured value of this header:
+895
+829
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+[[1,null,null,null,null,null,null,null,null,null,[null,null,null,null,"en-US",null,"boq_identity-oauth-http_20241029.02_p0",null,[[["Android WebView","129"],["Not=A?Brand","8"],["Chromium","129"]],1,"Android","13.0.0","","Pixel 6","129.0.6668.100"],[4,0,0,0,0]]],1022,[["1730759135077",null,null,null,null,null,null,null,null,null,null,null,null,null,18000,null,null,null,null,null,2,null,null,"[[[1730759133024000,0,0],2],null,[[1730759133024000,0,0],1],[191077,2,3,null,null,null,null,null,null,null,null,null,null,[[188412,{\"672\":[null,null,[[\"m4yhhGnL8i50qN6FqfgVog\"]]]}],[191077,{\"672\":[null,null,[[\"m4yhhGnL8i50qN6FqfgVog\"]]]}]],[{\"126\":[[\"1730759135077\"]]}]],null,null,null,null,[[[1730759133024000,0,0],1]]]"]],"1730759135078",null,null,null,null,null,null,null,null,null,null,null,null,null,[[null,[null,null,null,null,null,null,null,null,null,null,null,null,128566913]],9]]
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+[[1,null,null,null,null,null,null,null,null,null,[null,null,null,null,"en-US",null,"boq_identity-oauth-http_20241029.02_p0",null,null,[4,0,0,0,0]]],1022,[["1730759133025",null,null,null,null,null,null,null,null,null,null,null,null,null,18000,null,null,null,null,null,1,null,null,"[[[1730759133024000,0,0],1],[[188412,null,null,[1,2],{\"618\":[[\"1730759133024\"]],\"672\":[null,null,[[\"m4yhhGnL8i50qN6FqfgVog\"]]]}],[191078,{\"618\":[[\"1730759133025\"]],\"672\":[null,null,[[\"m4yhhGnL8i50qN6FqfgVog\"]]]}],[191077,{\"618\":[[\"1730759133025\"]],\"672\":[null,null,[[\"m4yhhGnL8i50qN6FqfgVog\"]]]}]],null,null,null,null,null,null,[[[1730759133024000,0,0],1]]]"]],"1730759133025",null,null,null,null,null,null,null,null,null,null,null,null,null,[[null,[null,null,null,null,null,null,null,null,null,null,null,null,128566913]],9]]
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://android.apis.google.com/c2dm/register3
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+855
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: app_ver
+Value in http3:
+84352630
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+X-subtype=932144863878&sender=932144863878&X-app_ver=84352630&X-osv=33&X-cliv=fiid-21.1.1&X-gmsv=244233029&X-appid=c7h4owOlT92unUBGcQSHKR&X-scope=*&X-Goog-Firebase-Installations-Auth=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjE6MjIxNTcxODQxMzE4OmFuZHJvaWQ6OWM1NDdiNWVkNDY2YjU4MCIsImV4cCI6MTczMjI5NTkwMCwiZmlkIjoiYzdoNG93T2xUOTJ1blVCR2NRU0hLUiIsInByb2plY3ROdW1iZXIiOjIyMTU3MTg0MTMxOH0.AB2LPV8wRQIgQAtmSm46yV5AvJbG1p_E2WHWuWLmCM1PY9Xy1IejDk4CIQCXY7_QsNT2pWqOti4nW1S5FdoReH03zFMkQ_JYoCdY2w&X-gmp_app_id=1%3A221571841318%3Aandroid%3A9c547b5ed466b580&X-firebase-app-name-hash=R1dAH9Ui7M-ynoznwBdw01tLxhI&X-app_ver_name=43.5.26-31%20%5B0%5D%20%5BPR%5D%20693462648&app=com.android.vending&device=3541026727723166203&app_ver=84352630&info=o6OzkseGsowboLPgN7e-uDCTpyDAFxk&gcm_ver=244233029&plat=0&cert=38918a453d07199354f8b19af05ec6562ced5788&target_ver=35
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://android.googleapis.com/auth
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1715
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+2068
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1781
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1656
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1813
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1675
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: content-length
+Value in http3:
+1782
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has different header:
+
+Header: app
+Value in http3:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.google.android.gms&oauth2_foreground=1&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&has_permission=1&token_request_options=CAA4AVABYAA%3D&client_sig=38918a453d07199354f8b19af05ec6562ced5788&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=244233029&check_email=1&service=oauth2%3Ahttps%3A%2F%2Fwww.googleapis.com%2Fauth%2Flams&system_partition=1&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTI2LCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDT1Rla0swQ0V0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFON1Jna2FCYmsyMTBoMkk2SU1Qd09MU2wteGpmWnVMNkhpTEhyc01HTGhoSWlFQUZHT2pZa0V2VXBOYXF2OGFfUVVicjVFYWFOZVNWd29FV0g0R25mQ28zcjhZQXhBQkdPVGVrSzBDSUFFIn19.rXxQOtUbIh56cHqxLzxOrhPMPz_GcYjTMLM4BwmSQmjMAunPR0_X1ijEE3w6zgI_9aB0WnQaAHQJOtGcrU8EBA&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVADYAA%3D&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&check_email=1&service=oauth2%3Aemail%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.login%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.me%20openid%20profile&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTI4LCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDUEdKZ1BJSUV0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFNZnM2S1I2eFljdXlseUdvd2lXWFpXWndRYldCVzNQX2tyalZMOU1Gd2Z1SWlFQUY4RmVZVHVITlExYVAzdV9WOWFBREZnb0Z2bjZqQ09aaFBWMWF4Slo3cU1ZQXhBQkdQR0pnUElJSUFFIn19.1ZfDeg6q_MP1zM6JSVtNklo9ZJhCgrunMvFPJy4Bt97MNc8zQXOv8VFkaeLk9f8Q7V7qI-PugX41lG-Q0DdBFg&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&include_granted_scopes=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVADWhZtNHloaEduTDhpNTBxTjZGcWZnVm9nYAA%3D&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&check_email=1&service=oauth2%3Aemail%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.login%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.me%20openid%20profile&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTMwLCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDT1BEaXJrR0V0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFJVW5yRnVtOXJvbmFoSk5Ca1pHV1BLNmJsdEl0SU9tMlljeFpfc1BjRFhfSWlFQV9reFNiWndOX3NVMlFzeHRwbzdOQUEyX2NpSTlYMTlmbWdLYlhDSkJaTU1ZQXhBQkdPUERpcmtHSUFFIn19.miAgLkai-PbKj25XstTkhIsuguJkbZ15l_XQAZeVDUu5jquUFEIxJo1xah9gqyroSgj843gy3grQsDo8Mf9CMQ&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&include_granted_scopes=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVAFYAA%3D&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&check_email=1&service=oauth2%3Aopenid&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTI2LCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDTGZ6akkwT0V0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFNYjMxaFpHbGVtWEZ1R2o5eGsxdmNfczZyWmJrWHhCbFp1SVg3RHdRQWdLSWlFQXlOZnFtblF0dGU5NTZUUVRaYjlpaVdpUnE4ZUVfYlp3QW1ycHpsb1ZMV0FZQXhBQkdMZnpqSTBPSUFFIn19.Z1a_5bt8nIBsf8HiL6eFoiRFhGXvAgivzfcqhDlKZyHIl0Tr8-5PC_0fRVjHjbt_Icgq4ptCbudeVpZV17NgSg&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&include_granted_scopes=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&has_permission=1&token_request_options=CAA4AVADWhZtNHloaEduTDhpNTBxTjZGcWZnVm9nYAA%3D&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&consent_result=CAEStAEAJjzVKOs-yRzcEj6UOqvKBgq2mWaXbfuIt1BCfgUF7Msnll78ZOM-jXKJlEfr4wqrtdhlxokds1t4Gjn_bkcoO9qdU2Jf22rIMWyGXsLXffVUvauLL795Om5c-cnb0wkIbx_SelcnYHSI9fQoMZB3uZJqLFn_ZL_dcU_93-KGHzIO240FH3Y9cPoqWQIsR7lNYgIXf15gFE3S92k_BakHjiyVoFtD9HZh1v15vGszLAzPOU8&check_email=1&service=oauth2%3Aemail%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.login%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.me%20openid%20profile&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTM2LCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDSlRuOHNzTkV0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFLN3RLckY1QTlRNGtZRjlxV1VPRTc3d1hPYjBFTXVjNEwwNkJuYjRCWUVoSWlFQVk0WDhpQV96QWpIMWpWbnAzX0FmV0pYZ1lDclJvM1hWT1poQWRxcVRINGNZQXhBQkdKVG44c3NOSUFFIn19.kKOD9iT_0fXQLIsBuwu4hxXrY28gHrP-uyVnhMfUC4MkZi5A1rPP9S7KDUwm0v_9lwjQxQ3-0cCwRO1GJ1KGzA&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&it_caveat_types=2&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVADWhZtNHloaEduTDhpNTBxTjZGcWZnVm9nYAA%3D&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&check_email=1&service=oauth2%3Aemail%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.login%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fplus.me%20openid%20profile&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTMwLCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDUExsM1lZRUV0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFKajZPa1d1Wks5VGRWMjZ0QVJ0TG9vU1dJdng0cE9ieHV3b0poWWJpOFpvSWlFQVpMSE10VS1BRDJCa1ZQREJZT3Z5Slhzd2daUjNUdlZxU3dpOUQ4dk5QTlFZQXhBQkdQTGwzWVlFSUFFIn19.4TSXfwcsbCo1M_qLeI6pnXMYFedlHNAbNO3iXBFOoyK1E0DaGEQRMrSj7d93XcS3ve_gFJjK3T0Lcwfwa8GJvQ&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&include_granted_scopes=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&app=com.alibaba.intl.android.apps.poseidon&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVADWhZtNHloaEduTDhpNTBxTjZGcWZnVm9nYAA%3D&oauth2_include_profile=1&client_sig=021448d2c09f5ce644ce508c027215ab39e0a69a&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=86700&check_email=1&service=audience%3Aserver%3Aclient_id%3A314775841274-543gqdmvq4fpdvruhc6qbfuvjc7ufgqn.apps.googleusercontent.com&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTM2LCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDSUtSbFlNR0V0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFMNTgtWkpibDZJQ09SVGh0aHZ1V09DR2dvSkxsbjFqdmd4Y0dwbGdCVmJOSWlFQUFPYnFRdTQxWjduMDNJRnJhMUVsQXd5N0FBS3JsYjJDUEY0WTA2SHIya2dZQXhBQkdJS1JsWU1HSUFFIn19.gq5LnMJqDSrGOFcwWFoy5mNSvoUNtl53mOTQi_10kgUo5JkFXW0X7hMUmlsY9DnnkNXaZk-uo3BDy21wMeQlew&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&oauth2_include_email=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+androidId=3124410c361a69fb&lang=en-US&google_play_services_version=244233029&sdk_version=33&device_country=ca&app=com.google.android.gms&oauth2_foreground=1&Email=shaoqi.test%40gmail.com&pkgVersionCode=244233029&token_request_options=CAA4AVABYAA%3D&client_sig=38918a453d07199354f8b19af05ec6562ced5788&Token=aas_et%2FAKppINZ301sqFZrWS01nxKAdsref2ZvaP9h5EbhM8BywmXOlfVh38eT8tqLvGPdubIVc0Ecf77mjqafhA6hI0-FQ9TFbb7tBEp9BTDMDIevUZZ2Gg3M-2smGhST43-zaACunmSBXL3TqYC3_J_0OqY7wnXeljeD95dR53TrTM9kE_8JRIhpZpjv4wnaKQoiiWEMlgE-sAI8EjRu5HFSpFcc%3D&consumerVersionCode=244233029&check_email=1&service=weblogin%3Aurl%3Dhttps%3A%2F%2Faccounts.google.com&system_partition=1&assertion_jwt=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lc3BhY2UiOiJUb2tlbkJpbmRpbmciLCJhdWQiOiJodHRwczpcL1wvYWNjb3VudHMuZ29vZ2xlLmNvbVwvYWNjb3VudG1hbmFnZXIiLCJpc3MiOiJxRHR1Z0VXcVdmUVJCbFhVTjJJcHFiZ1BrbWY4UzYzQTFDc0dXSGpWc2k4IiwiaWF0IjoxNzMwNzU5MTMwLCJlcGhlbWVyYWxfa2V5Ijp7Imt0eSI6InR5cGUuZ29vZ2xlYXBpcy5jb21cL2dvb2dsZS5jcnlwdG8udGluay5FY2llc0FlYWRIa2RmUHVibGljS2V5IiwiVGlua0tleXNldFB1YmxpY0tleUluZm8iOiJDSXVuMFBjRkV0MEJDdEFCQ2oxMGVYQmxMbWR2YjJkc1pXRndhWE11WTI5dEwyZHZiMmRzWlM1amNubHdkRzh1ZEdsdWF5NUZZMmxsYzBGbFlXUklhMlJtVUhWaWJHbGpTMlY1RW93QkVrUUtCQWdDRUFNU09oSTRDakIwZVhCbExtZHZiMmRzWldGd2FYTXVZMjl0TDJkdmIyZHNaUzVqY25sd2RHOHVkR2x1YXk1QlpYTkhZMjFMWlhrU0FoQVFHQUVZQVJvaEFJd3BDbTl6VzI4YXJyeXpvWHBoMDBNOTlfVi1TcG1zZldzVzFpeFVpRjdPSWlFQWJVTjBvck5LNXRobjFzNFF5NTdUbnZUZ3FTWlZYTncxd09EcVpSOVN6OU1ZQXhBQkdJdW4wUGNGSUFFIn19.Rg1HGjNkSYNz-oAGv6MG9ok68f_Lvdnr-GRtLCFAAfllCBsy2qlF6PXHUqG2390-ecsZknnkakogKlYcLy3h7Q&callerPkg=com.google.android.gms&check_tb_upgrade_eligible=1&callerSig=38918a453d07199354f8b19af05ec6562ced5788
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://ssl.gstatic.com/accounts/static/_/js/k=gaia.gaiafe_materialnext.en.uPi65rRjU18.O/am=OBgQALw--ej__3_-IURJIDwEAAAAAAAAAGCsBABAGCUhgQY/d=0/rs=ABkqax1GE-hAhb8Sz0n8T734cnhmJMdwwQ/m=kmSu5b,pNNB8d,nSePib,sy7c,wg0Xlc,ltDFwf,FY2WYe,Rkm0ef,sy7d,aC1iue,C4utjd,sy7g,sy7i,sy7e,i5H9N,i5dxUd,sy7h,sy7j,sy7k,sy7l,PHUIyb,qNG0Fc,sy7m,f8Gu1e,ywOR5c,sy7p,wHhlDf,sy40,ZaLlAf,wg1P6b,KeQPff,Ts8zpc,yJC6Qb
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://accounts.google.com/signin/oauth/consent?android=1&android_options=CAMQAQ&as=m4yhhGnL8i50qN6FqfgVog&authuser=0&client_id=314775841274-dq5opth6n9i3fi202adu09bcpb3old1u.apps.googleusercontent.com&color_scheme=dark&flowName=GeneralOAuthFlow&hl=en-US&part=AJi8hAPTmJkxe_ekRKDkkEHmyEhIjS9gCZYus7RuIx4caEHyaTO0F7j6zPiZcINm4F2VPx5Farl0RCQFkdnPEDhQhFvepWhZgwnhveeyXsTAC-sXqYC5kDxQTZ1fghubqqIaMVKtPUER5CIPbVedfPSJ3hfh8HFsKVUprBrjqBdOIXts2QchrkEk8esykDojcxp34wEp0w7EiHWC8789BRYTBEBGdBGK9lRUtWKEKznuDiXm9Tu8OWkH59F53YvctZEMoZg1eFUqluFBx0tZCL1_qiAsH1BkN7OGvIs6cSYzyV8ldnL3dWCTEnMejoWyBIyZ1pZO34ifmc93FY6LU9Dgrav5_EwBJ1AxRqsDWUv5fTpEGIJZhcubwV4DMzA2ss0MQIRCPKh0UuzytbvkznoHEAX1fiPCsOOWAaEk1QIweDs6Q4aUTGB7dQlnqA6nNv2usLk-SoBT0o-KGEd2_mYBQrOD2IELebCoWEba5fVliN-WTqiZjpZdBUKgjhT-sn-NmfA-K8TxdNwO8U1hy4qJs2KYmPjQG9E3UxeZH2M1ARTIT_FPm-gebBtza7C-JxdZdiwpNW5xHqKi66M-ujlSq8B_8rnvVGeXafoLWV79oSTcqjZaJDYezrHU1pC8AudtyfZCMO-G65s2ZxLH145oxsGjShV2dBdBtCVCRbLsXnzzv96WeDb5rar5CESVxu3TjGJGn8p5Wj5ztJjCPGmTB3uUf_ZzplG5pNGz7vpektopjGt-yaogYuls7zVJPjvP9qRHv4xL0oZgQfpZUgS7FDcCjD8LBQWXG4J5frgITUtAtWDld-4iRf19M8Qn1K1Pw5UP70djZM39SUERgkdEbw-G1h86nEg1vlbuSqLN4Hc49faBuvPy-1xMEVIJp5ljatEoJmy5mODHeQtZ5vb9Nlot6h4gYZOii7mPThRuGEWARvJZg0XxYIaY3lh4ImqXpKMxb4sv&rapt
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-origin
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=0, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: upgrade-insecure-requests
+
+Captured value of this header:
+1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cache-control
+
+Captured value of this header:
+max-age=0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-user
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+navigate
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzVSaNDOjT9AdvTSXxyfazuxCDKROP2aFQoMyKB4Sge_-JNlTNF50TQTYLfozEVnjmWx
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+document
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.en_US.4TzK6ic_TxU.es5.O/ck=boq-identity.OAuthUi.Fi3xvc3UVh0.L.B1.O/am=6GBOMYP4c__fDShAAAAAAAAAAAAwAACEAQ/d=1/exm=DzeMwe,E87wgc,EFQ78c,IZT63,K0PMbc,K1ZKnb,KUM7Z,L9OGUe,LDQI,LEikZe,MI6k7c,MpJwZc,PHUIyb,PrPYRd,Rkm0ef,RqjULd,SCuOPb,SD8Jgb,SpsfSb,Tbb4sb,UUJqVe,Uas9Hd,WpP9Yc,YHI3We,YTxL4,YgOFye,_b,_tp,aC1iue,bTi8wc,byfTOb,cYShmd,f8Gu1e,hKSk3e,hc6Ubd,kjKdXe,lazG7b,lsjVmc,ltDFwf,lwddkf,m9oV,mI3LFb,mdR7q,n73qwf,p3hmRc,qPYxq,qmdT9,rmumx,siKnQd,soHxf,vHEMJe,vfuNJf,vjKJJ,ws9Tlc,xQtZb,xiZRqc,y5vRwf,yRXbo,ywOR5c,z0u0L,zbML3c,ziZ8Mc,zr1jrb,zy0vNb/excm=_b,_tp,attributesview/ed=1/wt=2/ujg=1/rs=AOaEmlFDHjCev7H5CnzFT-7vW5LyzAQE9w/ee=ASJRFf:DAnQ7e;Al0B8:kibjWe;DaIJ8c:iAskyc;EVNhjf:pw70Gc;EkYFhd:GwYlN;EmZ2Bf:zr1jrb;JsbNhc:Xd8iUd;K5nYTd:ZDZcre;LBgRLc:XVMNvd;Me32dd:MEeYgc;NPKaK:PVlQOd;NSEoX:lazG7b;Pjplud:EEDORb;QGR0gd:Mlhmy;SMDL4c:K0PMbc;SNUn3:ZwDk9d;ScI3Yc:e7Hzgb;UpnZUd:nnwwYc;Uvc8o:VDovNc;XdiAjb:NLiXbe;YIZmRd:A1yn5d;a56pNe:JEfCwb;cEt90b:ws9Tlc;dIoSBb:SpsfSb;dowIGb:ebZ3mb;eBAeSb:zbML3c;iFQyKf:vfuNJf;lOO0Vd:OTA3Ae;nAFL3:NTMZac;nTuGK:JKNPM;oGtAuc:sOXFj;oSUNyd:K0PMbc;oXZmbc:tUnxGc;pXdRYb:L9OGUe;qafBPd:yDVVkb;qddgKe:xQtZb;vNjB7d:YTxL4;wR5FRb:siKnQd;yxTchf:KUM7Z/m=xUdipf,OTA3Ae,A1yn5d,fKUV3e,aurFic,Ug7Xab,NwH0H,OmgaI,gychg,w9hDv,EEDORb,Mlhmy,ZfAoz,kWgXee,ovKuLd,yDVVkb,ebZ3mb,ZDZcre,A7fCU
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://accounts.google.com/favicon.ico
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=1, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-origin
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzVTzFb-k-g24IOjUHho5le00vCJ-ciyjIMvT6U8dcC4IxQkPJ-QnFV-LgWJHi2iLsl4
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+image
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.en_US.4TzK6ic_TxU.es5.O/ck=boq-identity.OAuthUi.Fi3xvc3UVh0.L.B1.O/am=6GBOMYP4c__fDShAAAAAAAAAAAAwAACEAQ/d=1/exm=A1yn5d,A7fCU,DzeMwe,E87wgc,EEDORb,EFQ78c,IZT63,K0PMbc,K1ZKnb,KUM7Z,L9OGUe,LDQI,LEikZe,MI6k7c,Mlhmy,MpJwZc,NwH0H,OTA3Ae,OmgaI,PHUIyb,PrPYRd,Rkm0ef,RqjULd,SCuOPb,SD8Jgb,SpsfSb,Tbb4sb,UUJqVe,Uas9Hd,Ug7Xab,WpP9Yc,YHI3We,YTxL4,YgOFye,ZDZcre,ZfAoz,_b,_tp,aC1iue,aurFic,bTi8wc,byfTOb,cYShmd,ebZ3mb,f8Gu1e,fKUV3e,gychg,hKSk3e,hc6Ubd,kWgXee,kjKdXe,lazG7b,lsjVmc,ltDFwf,lwddkf,m9oV,mI3LFb,mdR7q,n73qwf,ovKuLd,p3hmRc,qPYxq,qmdT9,rmumx,siKnQd,soHxf,vHEMJe,vfuNJf,vjKJJ,w9hDv,ws9Tlc,xQtZb,xUdipf,xiZRqc,y5vRwf,yDVVkb,yRXbo,ywOR5c,z0u0L,zbML3c,ziZ8Mc,zr1jrb,zy0vNb/excm=_b,_tp,attributesview/ed=1/wt=2/ujg=1/rs=AOaEmlFDHjCev7H5CnzFT-7vW5LyzAQE9w/ee=ASJRFf:DAnQ7e;Al0B8:kibjWe;DaIJ8c:iAskyc;EVNhjf:pw70Gc;EkYFhd:GwYlN;EmZ2Bf:zr1jrb;JsbNhc:Xd8iUd;K5nYTd:ZDZcre;LBgRLc:XVMNvd;Me32dd:MEeYgc;NPKaK:PVlQOd;NSEoX:lazG7b;Pjplud:EEDORb;QGR0gd:Mlhmy;SMDL4c:K0PMbc;SNUn3:ZwDk9d;ScI3Yc:e7Hzgb;UpnZUd:nnwwYc;Uvc8o:VDovNc;XdiAjb:NLiXbe;YIZmRd:A1yn5d;a56pNe:JEfCwb;cEt90b:ws9Tlc;dIoSBb:SpsfSb;dowIGb:ebZ3mb;eBAeSb:zbML3c;iFQyKf:vfuNJf;lOO0Vd:OTA3Ae;nAFL3:NTMZac;nTuGK:JKNPM;oGtAuc:sOXFj;oSUNyd:K0PMbc;oXZmbc:tUnxGc;pXdRYb:L9OGUe;qafBPd:yDVVkb;qddgKe:xQtZb;vNjB7d:YTxL4;wR5FRb:siKnQd;yxTchf:KUM7Z/m=P6sQOc
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+cross-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+script
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://play.google.com/log?hasfast=true&authuser=0&format=json
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+empty
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: origin
+
+Captured value of this header:
+https://accounts.google.com
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-type
+
+Captured value of this header:
+text/plain;charset=UTF-8
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-length
+
+Captured value of this header:
+930
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+no-cors
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=4, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+*/*
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-site
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+[[1,null,null,null,null,null,null,null,null,null,[null,null,null,null,"en",null,null,null,[[["Android WebView","129"],["Not=A?Brand","8"],["Chromium","129"]],1,"Android","13.0.0","","Pixel 6","129.0.6668.100"],[3,1,0,0,0]]],558,[["1730759135000",null,null,null,null,null,null,"[[null,[1,\"accounts.google.com/signin/oauth/consent\",null,[\"https://accounts.google.com/\"],0]],null,3,[null,\"m4yhhGnL8i50qN6FqfgVog\"]]",null,null,null,null,null,null,18000,null,null,null,null,null,1],["1730759136000",null,null,null,null,null,null,"[[[224,42076,\"invalid-device-id\",null,null,null,null,null,null,null,null,null,\"accounts.google.com/signin/oauth/consent\"]],null,3,[null,\"m4yhhGnL8i50qN6FqfgVog\"]]",null,null,null,null,null,null,18000,null,null,null,null,null,2]],"1730759136437",null,null,null,null,null,null,null,null,null,null,null,null,null,[[null,[null,null,null,null,null,null,null,null,null,null,null,null,128566913]],9]]
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
+
+
+While using app: com.alibaba.intl.android.apps.poseidon
+Uri: https://accounts.google.com/_/signin/oauth/id?android=1&android_options=CAMQAQ&as=m4yhhGnL8i50qN6FqfgVog&authuser=0&client_id=314775841274-dq5opth6n9i3fi202adu09bcpb3old1u.apps.googleusercontent.com&color_scheme=dark&flowName=GeneralOAuthFlow&hl=en-US
+
+http3 request has distinct header:
+
+Http3 specific Header: cookie
+
+Captured value of this header:
+__Secure-3PSIDCC=AKEyXzU5i3w01bZR2CU7gksoQipltCFZovWqYVN-08t2AzBfim3Ozp84-oXcT-0k5iDLUyjC
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-language
+
+Captured value of this header:
+en-US,en;q=0.9
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-bitness
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-mobile
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version
+
+Captured value of this header:
+"129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: x-requested-with
+
+Captured value of this header:
+com.google.android.gms
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-type
+
+Captured value of this header:
+application/x-www-form-urlencoded
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-form-factors
+
+Captured value of this header:
+"Mobile"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua
+
+Captured value of this header:
+"Android WebView";v="129", "Not=A?Brand";v="8", "Chromium";v="129"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: content-length
+
+Captured value of this header:
+1196
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept-encoding
+
+Captured value of this header:
+gzip, deflate, br, zstd
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: origin
+
+Captured value of this header:
+https://accounts.google.com
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: upgrade-insecure-requests
+
+Captured value of this header:
+1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: cache-control
+
+Captured value of this header:
+max-age=0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-model
+
+Captured value of this header:
+"Pixel 6"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-dest
+
+Captured value of this header:
+document
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: accept
+
+Captured value of this header:
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-arch
+
+Captured value of this header:
+""
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-site
+
+Captured value of this header:
+same-origin
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform-version
+
+Captured value of this header:
+"13.0.0"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-mode
+
+Captured value of this header:
+navigate
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: referer
+
+Captured value of this header:
+https://accounts.google.com/
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-fetch-user
+
+Captured value of this header:
+?1
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-platform
+
+Captured value of this header:
+"Android"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-full-version-list
+
+Captured value of this header:
+"Android WebView";v="129.0.6668.100", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.100"
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: priority
+
+Captured value of this header:
+u=0, i
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: user-agent
+
+Captured value of this header:
+Mozilla/5.0 (Linux; Android 13; Pixel 6 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has distinct header:
+
+Http3 specific Header: sec-ch-ua-wow64
+
+Captured value of this header:
+?0
+
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+http3 request has specific body:
+at=APHnZxMPfvVajTELrZYaBwpU3LA0%3A1730759132654&part=AJi8hAPDM4FSn4HiRnmDO8MrIzfr8OYMOioqivA0ruon0fO4uvmPHFifs1M9q3XbM_t5QcPMmD_a2FkqUFUE1RgVgPv9nzwekfJ5fWSt5cEIiFpnCqnAHvvbDdprM33eLby7U9vOnxZoHX--hptMWLPFdf-C_u5X-frNZdexpY4Pt2ACjWyCZc6EEcnADUEaoilQVfElEKLnu_NFG9y4LWuOlNjo5sT1xWxF8iisNP9Ldg4WBT1i7qbrrLKeqI2kn0EFBDeyKJS5G9_eYfgxcr14PTyhidlfTZXUPsiasPSQoLt-R0SH_srp_YZ42DtViO85cA2PhV_BM40rOrLJH9JuaNsncZnSeuIEKNzPg9j5vTiSqf817Z9CxRbo9oCOsEkavqQU0Gwe8K8viYI3o8JgYR_CWZo-pBxda_HH3AgSwYufdphFXyzst6f9HfDsGrHG2ufYnq1B9D5ztRNXYpfhJ-YnhCzrcGoVjwFdxyzs-Ly3By-q6TNlK3rjfTJpOaQQ90hGHFmqR-0vWx5GcCKOkrqoWcfpCM4ZsFibMSnAgbwrKuKwHp7VcHHX_HAmOy0hTQhGuFn-pFyVhCMZWesOq0yPBjQj54UZgm-vqhjI3Q7iZVoyjyF0gYrdhLBeHaxsF51yuPED_X9rlHgnGFpc2zcgVlYURG5-vFZNO9WxADjPJDXbd2-I0qjsB-eDXL3atQGzbz8jYWg1D7iLY6yRsfayupgtyVJLYgIvkHR68h7jh0IK3Uxf76OnNiwZ0Z-rhNoTsz_6RfL9Wn6UjsmPwgKv2iprUjJq6fgxdVglPEXs-UkpsAJNB9T5WH-soFJSv3NsCQGJKEC6bA3OVLjYCryYKAr9pOTAIo89KzgI6NRPED7ha5ZCSlvPgrMYtUlinbCcxHuDgd-IQL0htTNC-KlJGEby0DrKW_NPuYAHnBj9VCMQaFaomKrb2E8VVQnYd4mcURk7&approvedScope=openid%2Chttps%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%2Chttps%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&rapt=&skipParentalPermission=
+
+= = = = = = = = = = = = = = = = = = = =
+
+
+
++ + + + + + + + + + + + + + + + + + + +
+
