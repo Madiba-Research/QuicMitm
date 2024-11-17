@@ -72,3 +72,6 @@ For Nov 6, we only process gzip
 while running the proxy, make sure only using the Droid-EV Wifi for internet connection
 
 
+Play store cannot download without http3
+
+
