@@ -46,6 +46,14 @@ sudo docker start mongodb
 sudo docker stop mongodb
 request data location: database("requestdb").collection("httpreq")
 
+delete database:
+docker exec -it <container_name> mongosh
+show dbs
+use <database_name>
+db.dropDatabase()
+exit
+
+
 
 app account:
 shaoqi.test@gmail.com
@@ -61,6 +69,6 @@ For Nov 6, we only process gzip
 
 
 
-
+while running the proxy, make sure only using the Droid-EV Wifi for internet connection
 
 
