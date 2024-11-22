@@ -75,3 +75,9 @@ while running the proxy, make sure only using the Droid-EV Wifi for internet con
 Play store cannot download without http3
 
 
+tcpdump -i any -p -s 0 -w /sdcard/capture.pcap
+
+
+adb pull /sdcard/capture.pcap .
+
+

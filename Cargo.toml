@@ -9,6 +9,10 @@ name = "main_h1_h2_h3_proxy"
 path = "src/bin/main_h1_h2_h3_proxy.rs"
 
 [[bin]]
+name = "main_h3_tls_proxy"
+path = "src/bin/main_h3_tls_proxy.rs"
+
+[[bin]]
 name = "main_h1_h2_proxy"
 path = "src/bin/main_h1_h2_proxy.rs"
 
@@ -59,22 +63,13 @@ mongodb = "3.1.0"
 tree_magic_mini = "3.1.6"
 flate2 = "1.0.34"
 csv = "1.3.0"
+tracing = { version = "0.1.10", default-features = false, features = ["std"] }
+tracing-futures = { version = "0.2.0", default-features = false, features = ["std-future"] }
+tracing-subscriber = { version = "0.3.0", default-features = false, features = ["env-filter", "fmt", "ansi", "time", "local-time"] }
 
-
-[build-dependencies]
-prost-build = "0.13.3"
-# rustls-pki-types = "1.10.0"
-
-# [patch.crates-io]
-# rcgen = { git = "https://github.com/jiangshaoqi/rcgen.git" }
 
 # [build-dependencies]
-# cargo-patch = "0.3"
-
-# [package.metadata.patch.rcgen]
-# version = "0.13.1"
-# patches = [
-#     "drcgen.patch"
-# ]
+# prost-build = "0.13.3"
+# rustls-pki-types = "1.10.0"
 
 

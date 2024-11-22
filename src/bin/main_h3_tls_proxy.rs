@@ -13,6 +13,9 @@ use tokio::io::{split, copy};
 
 use bytes::{Buf, Bytes};
 
+use tracing::{error, info, info_span};
+use tracing_futures::Instrument as _;
+
 mod cert_generate_util;
 
 pub mod alpn {
@@ -45,29 +48,40 @@ where
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
+    // tracing::subscriber::set_global_default(
+    //     tracing_subscriber::FmtSubscriber::builder()
+    //         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+    //         .finish(),
+    // )
+    // .unwrap();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .init();
+
     rustls::crypto::ring::default_provider()
         .install_default()
         .expect("default provider already set elsewhere");
 
     // for tcp usage
-    let tcp_tls_acceptor = get_h2_config()?;
+    // let tcp_tls_acceptor = get_h2_config()?;
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    let tcp_listener = TcpListener::bind("172.30.143.95:443").await?;
-    println!("Tcp binding finished");
+    // let tcp_listener = TcpListener::bind("172.30.143.95:443").await?;
+    // println!("Tcp binding finished");
 
     // set tls for quic
     let server_config = get_h3_config()?;
     let endpoint = quinn::Endpoint::server(
         server_config,
         // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 95)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 58)), 443),
     )?;
     println!("Quic binding finished");
 
     // set server
-    let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
+    // let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
     let quic_task = tokio::spawn(process_quic_request(endpoint));
-    let _ = tokio::join!(tcp_tls_task, quic_task);
+    quic_task.await?;
+    // let _ = tokio::join!(tcp_tls_task, quic_task);
 
     Ok(())
 }
@@ -140,7 +154,12 @@ async fn proxy_tcp_tls_naive(
 async fn process_quic_request(endpoint: Endpoint) {
     while let Some(new_conn) = endpoint.accept().await {
         println!("quic accepting connection");
-        tokio::spawn(proxy_quic_connection(new_conn));
+        // tokio::spawn(proxy_quic_connection(new_conn));
+        tokio::spawn(async move {
+            if let Err(e) = proxy_quic_connection(new_conn).await {
+                println!("error in quic connection: {}", e);
+            }
+        });
     }
     endpoint.wait_idle().await;
 }
@@ -148,7 +167,9 @@ async fn process_quic_request(endpoint: Endpoint) {
 
 async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
+    println!("before conn");
     let proxy_conn = conn.await?;
+    println!("after conn");
 
     let server_domain = proxy_conn
         .handshake_data()
