@@ -1,9 +1,4 @@
-Using existed CA certificate and CA private key
-Quic binding finished
-quic accepting connection
-before conn
 2024-11-23T00:50:20.260534Z TRACE first recv:frame{ty=CRYPTO}: quinn_proto::connection: consumed 281 CRYPTO bytes
-requesting domain name: acs.m.alibaba.com
 2024-11-23T00:50:20.261696Z TRACE first recv: quinn_proto::connection: Handshake keys ready
 2024-11-23T00:50:20.261721Z TRACE first recv: quinn_proto::connection: wrote 123 Initial CRYPTO bytes
 2024-11-23T00:50:20.261815Z TRACE first recv: quinn_proto::connection: Data keys ready

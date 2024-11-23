@@ -1,6 +1,5 @@
 2024-11-21T22:03:13.950649Z TRACE first recv:frame{ty=CRYPTO}: quinn_proto::connection: consumed 513 CRYPTO bytes
 2024-11-21T22:03:13.950841Z TRACE first recv:frame{ty=CRYPTO}: quinn_proto::connection: consumed 79 CRYPTO bytes
-requesting domain name: app-measurement.com
 2024-11-21T22:03:13.953279Z TRACE first recv: quinn_proto::connection: Handshake keys ready
 2024-11-21T22:03:13.953318Z TRACE first recv: quinn_proto::connection: wrote 90 Initial CRYPTO bytes
 2024-11-21T22:03:13.953408Z TRACE first recv: quinn_proto::connection: Data keys ready
