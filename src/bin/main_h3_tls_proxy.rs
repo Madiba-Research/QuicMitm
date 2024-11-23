@@ -4,7 +4,7 @@ use futures::future;
 use h3::quic::BidiStream;
 
 
-use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
+use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming, TransportConfig};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
 
 use tokio::net::{TcpListener, TcpStream};
@@ -54,6 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     //         .finish(),
     // )
     // .unwrap();
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::TRACE)
         .init();
@@ -73,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let endpoint = quinn::Endpoint::server(
         server_config,
         // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 58)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 76)), 443),
     )?;
     println!("Quic binding finished");
 
@@ -152,14 +153,23 @@ async fn proxy_tcp_tls_naive(
 
 
 async fn process_quic_request(endpoint: Endpoint) {
-    while let Some(new_conn) = endpoint.accept().await {
+    // while let Some(new_conn) = endpoint.accept().await {
+    //     println!("quic accepting connection");
+    //     // tokio::spawn(proxy_quic_connection(new_conn));
+    //     tokio::spawn(async move {
+    //         if let Err(e) = proxy_quic_connection(new_conn).await {
+    //             println!("error in quic connection: {}", e);
+    //         }
+    //     });
+    // }
+    if let Some(new_conn) = endpoint.accept().await {
         println!("quic accepting connection");
         // tokio::spawn(proxy_quic_connection(new_conn));
         tokio::spawn(async move {
             if let Err(e) = proxy_quic_connection(new_conn).await {
                 println!("error in quic connection: {}", e);
             }
-        });
+        }).await;
     }
     endpoint.wait_idle().await;
 }
@@ -190,10 +200,16 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
     proxy_config.alpn_protocols = vec![HTTP3.to_vec()];
 
     let mut proxy_endpoint = h3_quinn::quinn::Endpoint::client("0.0.0.0:0".parse().unwrap())?;
-    let proxy_config = quinn::ClientConfig::new(Arc::new(
+    let mut proxy_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(proxy_config)?,
     ));
+
+    let mut transport_config = TransportConfig::default();
+    transport_config.enable_segmentation_offload(false);
+    proxy_config.transport_config(Arc::new(transport_config));
+
     proxy_endpoint.set_default_client_config(proxy_config);
+
 
     let server_domain_port = server_domain.clone() + ":443";
     let server_addr = tokio::net::lookup_host(server_domain_port)
@@ -297,8 +313,13 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     
     config.alpn_protocols= vec![HTTP3.to_vec()];
 
-    let quinn_server_config =
+    let mut quinn_server_config =
         quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(config).unwrap()));
+
+    // set enable segmentation offload as false, so that every udp package has only 1 datagram
+    let mut transport_config = TransportConfig::default();
+    transport_config.enable_segmentation_offload(false);
+    quinn_server_config.transport_config(Arc::new(transport_config));
 
     Ok(quinn_server_config)
 }
