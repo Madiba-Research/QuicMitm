@@ -2,13 +2,13 @@ forward all tcp and udp packs to 443 into the localhost proxy
 remember to set the server's ip address as --to-destination
 every time after reboot, remember to set iptables
 
-iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.95
-iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.95
+iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.58
+iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.58
 
 to delete a rule for ip table, using flag -D:
 
-iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.95
-iptables -t nat -D OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.95
+iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.58
+iptables -t nat -D OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.58
 
 list rules: iptables -t nat -L OUTPUT --line-numbers
 

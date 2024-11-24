@@ -71,11 +71,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
     // set tls for quic
     let server_config = get_h3_config()?;
+
+    // let mut endpoint_config = quinn::EndpointConfig::default();
+    // // let ep_config = endpoint_config.max_udp_payload_size(1216).expect("fail set udp payload").clone();
+
+    // let runtime = Arc::new(quinn::TokioRuntime);
+    // let socket = std::net::UdpSocket::bind("172.30.143.58:443")?;
+    // let endpoint = quinn::Endpoint::new(ep_config, Some(server_config), socket, runtime)
+    //     .expect("cannot build endpoint");
+    
+    
     let endpoint = quinn::Endpoint::server(
         server_config,
         // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 76)), 443),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 58)), 443),
     )?;
+    
     println!("Quic binding finished");
 
     // set server
@@ -319,6 +330,8 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     // set enable segmentation offload as false, so that every udp package has only 1 datagram
     let mut transport_config = TransportConfig::default();
     transport_config.enable_segmentation_offload(false);
+    transport_config.datagram_send_buffer_size(0);
+
     quinn_server_config.transport_config(Arc::new(transport_config));
 
     Ok(quinn_server_config)
