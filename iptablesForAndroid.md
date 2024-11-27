@@ -81,3 +81,9 @@ tcpdump -i any -p -s 0 -w /sdcard/capture.pcap
 adb pull /sdcard/capture.pcap .
 
 
+Some problem that cause the failed capture quic/http3 request: quic handshake failed, then the application would reply a close connection with initial, but quinn ignore the initial packet as redundent.
+
+
+we disable the udp in the second trail, which is the responsiblity of the app to deal with the situation. As in the real world, the access point has the restriction on udp transmission.
+
+

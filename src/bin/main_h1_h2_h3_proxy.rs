@@ -269,6 +269,26 @@ async fn handle_http2_tunnel(
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
+    // request:
+    // string method = 1;
+    // string path = 2;
+    // repeated Header headers = 3;
+    // repeated Header trailers = 4;
+    // bytes body = 5;
+
+    // response:
+    // uint32 status_code = 1;
+    // repeated Header headers = 2;
+    // repeated Header trailers = 3;
+    // bytes body = 4;
+
+    // connectionInfo
+    // string source_address = 1;
+    // string destination_address = 2;
+    // bool tls = 3;
+    // uint64 timestamp = 4;
+
+
     let doc = RequestInMONGO {
         _id: None,
         app: package_name.to_string(),
