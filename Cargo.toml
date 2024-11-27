@@ -68,8 +68,8 @@ tracing-futures = { version = "0.2.0", default-features = false, features = ["st
 tracing-subscriber = { version = "0.3.0", default-features = false, features = ["env-filter", "fmt", "ansi", "time", "local-time"] }
 
 
-# [build-dependencies]
-# prost-build = "0.13.3"
+[build-dependencies]
+prost-build = "0.13.3"
 # rustls-pki-types = "1.10.0"
 
 

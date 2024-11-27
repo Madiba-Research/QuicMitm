@@ -50,6 +50,9 @@ pub struct RequestInMONGO {
     pub body: Vec<u8>,
     pub bodytype: Option<String>,
     pub bodyplaintext: Option<String>,
+
+    pub tls: bool,
+    pub time: u64,
 }
 
 

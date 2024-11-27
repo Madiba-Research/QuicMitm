@@ -15,6 +15,7 @@ use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Dat
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
 
+use time::OffsetDateTime;
 use tokio::{net::{TcpListener, TcpStream}, sync::OnceCell};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio::io::{split, copy};
@@ -270,24 +271,26 @@ async fn handle_http2_tunnel(
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
     // request:
-    // string method = 1;
-    // string path = 2;
-    // repeated Header headers = 3;
-    // repeated Header trailers = 4;
-    // bytes body = 5;
+    // string method = 1; +
+    // string path = 2; + uri
+    // repeated Header headers = 3; +
+    // repeated Header trailers = 4; -
+    // bytes body = 5; +
 
-    // response:
+    // response: -
     // uint32 status_code = 1;
     // repeated Header headers = 2;
     // repeated Header trailers = 3;
     // bytes body = 4;
 
     // connectionInfo
-    // string source_address = 1;
-    // string destination_address = 2;
-    // bool tls = 3;
-    // uint64 timestamp = 4;
+    // string source_address = 1; +
+    // string destination_address = 2; +
+    // bool tls = 3; +
+    // uint64 timestamp = 4; +
 
+    let now = OffsetDateTime::now_utc();
+    let timestamp = now.unix_timestamp() as u64;
 
     let doc = RequestInMONGO {
         _id: None,
@@ -301,6 +304,9 @@ async fn handle_http2_tunnel(
         
         bodytype: None,
         bodyplaintext: None,
+
+        tls: true,
+        time: timestamp,
     };
 
     println!("in connecting db h2");
@@ -371,6 +377,9 @@ async fn handle_http1_tunnel(
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
+    let now = OffsetDateTime::now_utc();
+    let timestamp = now.unix_timestamp() as u64;
+
     let doc = RequestInMONGO {
         _id: None,
         app: package_name.to_string(),
@@ -383,6 +392,9 @@ async fn handle_http1_tunnel(
         
         bodytype: None,
         bodyplaintext: None,
+
+        tls: true,
+        time: timestamp,
     };
 
     println!("in connecting db h1");
@@ -581,8 +593,10 @@ where T: BidiStream<Bytes> {
     }
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
-    
 
+    let now = OffsetDateTime::now_utc();
+    let timestamp = now.unix_timestamp() as u64;
+    
     let doc = RequestInMONGO {
         _id: None,
         app: package_name.to_string(),
@@ -595,6 +609,9 @@ where T: BidiStream<Bytes> {
         
         bodytype: None,
         bodyplaintext: None,
+
+        tls: true,
+        time: timestamp,
     };
 
     println!("in connecting db h3");

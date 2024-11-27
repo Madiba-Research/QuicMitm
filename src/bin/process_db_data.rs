@@ -11,6 +11,7 @@ use serde_json;
 
 
 
+// Process db and generate csv, for further conversion into protobuf
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
@@ -187,47 +188,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     println!("= = = = = = = = = = =");
 
-
-    // 5. get all corresponding HTTP3 doc, get body plain text
-    // let mut http3_common_cursor = my_coll.find(
-    //     doc! {
-    //         "uri": { "$in": Vec::from_iter(common_urls.clone()) },
-    //         "version": "HTTP/3",
-    //     }
-    // ).await?;
-
-    // while let Some(Ok(req)) = http3_common_cursor.next().await {
-    //     match req.bodytype.as_deref() {
-    //         Some("application/gzip") => {
-                
-    //         },
-
-    //         Some("text/plain") => {
-    //             match String::from_utf8(req.body) {
-    //                 Ok(plain_text) => {
-    //                     my_coll.update_one(
-    //                         doc! { "_id": &req._id },
-    //                         doc! { "$set": { "bodyplaintext": plain_text } }
-    //                     ).await?;
-    //                 },
-    //                 Err(_) => {},
-    //             }
-    //         },
-
-    //         Some("application/octet-stream") => {
-
-    //         },
-
-    //         Some(&_) => { 
-                
-    //         },
-
-    //         None => {
-
-    //         },
-    //     }
-    // }
-
     
     // 6. dump the matching http3 data into csv
     // at this time only write down those with plain text
@@ -239,20 +199,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let csv_name = format!("{}.csv", &package_name);
     let file_path = data_dir.join(csv_name);
     let mut wtr = Writer::from_path(file_path)?;
-    // wtr.write_record(&[
-    //     "_id",
-
-    //     "app",
-    //     "withquic",
-    
-    //     "uri",
-    //     "method",
-    //     "version",
-        
-    //     "header",
-    //     "bodytype",
-    //     "bodyplaintext"
-    // ])?;
 
 
     for u in Vec::from_iter(http3_urls.clone()) {
