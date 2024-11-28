@@ -12,17 +12,21 @@ path = "src/bin/main_h1_h2_h3_proxy.rs"
 name = "main_h3_tls_proxy"
 path = "src/bin/main_h3_tls_proxy.rs"
 
-[[bin]]
-name = "main_h1_h2_proxy"
-path = "src/bin/main_h1_h2_proxy.rs"
+# [[bin]]
+# name = "main_h1_h2_proxy"
+# path = "src/bin/main_h1_h2_proxy.rs"
 
 [[bin]]
-name = "process_db_data"
-path = "src/bin/process_db_data.rs"
+name = "raw_db_to_pb"
+path = "src/bin/raw_db_to_pb.rs"
 
-[[bin]]
-name = "read_csv_generate_report"
-path = "src/bin/read_csv_generate_report.rs"
+# [[bin]]
+# name = "process_db_data"
+# path = "src/bin/process_db_data.rs"
+
+# [[bin]]
+# name = "read_csv_generate_report"
+# path = "src/bin/read_csv_generate_report.rs"
 
 
 [dependencies]
