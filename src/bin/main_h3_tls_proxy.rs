@@ -189,7 +189,10 @@ async fn process_quic_request(endpoint: Endpoint) {
 async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     println!("before conn");
-    let proxy_conn = conn.await?;
+    // let proxy_conn = conn.await?;
+    let mut _proxy_conn = conn.accept().unwrap();
+    dbg!(&_proxy_conn);
+    let proxy_conn = _proxy_conn.await.unwrap();
     println!("after conn");
 
     let server_domain = proxy_conn
