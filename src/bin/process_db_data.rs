@@ -53,6 +53,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     let mut text = vec![];
                     if let Ok(_) = decoder.read_to_end(&mut text) {
                         let bodytype = tree_magic_mini::from_u8(&text);
+                        
+                        if bodytype == "text/plain" {
+                            let plain_text = String::from_utf8_lossy(&text).into_owned();
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        }
+
                         my_coll.update_one(
                             doc! { "_id": &req._id },
                             doc! { "$set": { "bodytype": bodytype.to_string() } }
@@ -65,12 +74,72 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     let mut text = vec![];
                     if let Ok(_) = decoder.read_to_end(&mut text) {
                         let bodytype = tree_magic_mini::from_u8(&text);
+
+                        if bodytype == "text/plain" {
+                            let plain_text = String::from_utf8_lossy(&text).into_owned();
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        }
+
                         my_coll.update_one(
                             doc! { "_id": &req._id },
                             doc! { "$set": { "bodytype": bodytype.to_string() } }
                         ).await?;
                     }
                     
+                } else if encoding == "zip" {
+                    let body_clone = req.body.clone();
+                    if let Ok(mut c) = zip::ZipArchive::new(std::io::Cursor::new(body_clone)) {
+                        let file_names = c
+                            .file_names()
+                            .map(|v| v.to_owned())
+                            .collect::<Vec<String>>();
+                        let mut result = vec![];
+                        for name in file_names {
+                            result.extend_from_slice(name.as_bytes());
+                            if let Ok(mut file) = c.by_name(&name) {
+                                file.read_to_end(&mut result).ok();
+                            }
+                        }
+                        let bodytype = tree_magic_mini::from_u8(&result);
+
+                        if bodytype == "text/plain" {
+                            let plain_text = String::from_utf8_lossy(&result).into_owned();
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        }
+
+                        my_coll.update_one(
+                            doc! { "_id": &req._id },
+                            doc! { "$set": { "bodytype": bodytype.to_string() } }
+                        ).await?;
+                    }
+
+                } else if encoding == "zstd" {
+                    let body_clone = req.body.clone();
+                    if let Ok(mut c) = zstd::stream::read::Decoder::new(std::io::Cursor::new(body_clone)) {
+                        let mut result = vec![];
+                        c.read_to_end(&mut result).ok();
+                        let bodytype = tree_magic_mini::from_u8(&result);
+
+                        if bodytype == "text/plain" {
+                            let plain_text = String::from_utf8_lossy(&result).into_owned();
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        }
+
+                        my_coll.update_one(
+                            doc! { "_id": &req._id },
+                            doc! { "$set": { "bodytype": bodytype.to_string() } }
+                        ).await?;
+                    }
+
                 } else {
                     // my_coll.update_one(
                     //     doc! { "_id": &req._id },
@@ -109,18 +178,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         http3_urls.insert(req.uri.clone());
         match req.bodytype.as_deref() {
             Some("application/gzip") => {
-                
+
             },
 
             Some("text/plain") => {
-                match String::from_utf8(req.body) {
-                    Ok(plain_text) => {
-                        my_coll.update_one(
-                            doc! { "_id": &req._id },
-                            doc! { "$set": { "bodyplaintext": plain_text } }
-                        ).await?;
-                    },
-                    Err(_) => {},
+                if let None = req.bodyplaintext {
+                    match String::from_utf8(req.body) {
+                        Ok(plain_text) => {
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        },
+                        Err(_) => {},
+                    }
                 }
             },
 
@@ -160,14 +231,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             },
 
             Some("text/plain") => {
-                match String::from_utf8(req.body) {
-                    Ok(plain_text) => {
-                        my_coll.update_one(
-                            doc! { "_id": &req._id },
-                            doc! { "$set": { "bodyplaintext": plain_text } }
-                        ).await?;
-                    },
-                    Err(_) => {},
+                if let None = req.bodyplaintext {
+                    match String::from_utf8(req.body) {
+                        Ok(plain_text) => {
+                            my_coll.update_one(
+                                doc! { "_id": &req._id },
+                                doc! { "$set": { "bodyplaintext": plain_text } }
+                            ).await?;
+                        },
+                        Err(_) => {},
+                    }
                 }
             },
 
