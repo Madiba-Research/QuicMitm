@@ -263,38 +263,87 @@ fn write_group_diff(app_using: String, uri_using: String, diff_vec: Vec<ReportDi
     let title = format!("\n\nWhile using app: {}\nUri: {}\n", app_using, uri_using);
     write_to_file(&title).expect("Write failed 1");
 
+    // used to igonore the repeated header value
+    let mut header_diff_set: HashSet<String> = HashSet::new();
+    let mut header_dist_set: HashSet<String> = HashSet::new();
+    let mut body_set: HashSet<String> = HashSet::new();
+
     for d in diff_vec {
         if d.diff_header == "body" {
-            write_to_file("\nhttp3 request has specific body:\n").expect("Write failed 2");
             if let Some(s) = d.h3_vs.iter().next() {
-                write_to_file(s).expect("Write failed 3");
-            }
-        } else if d.diff == DiffType::DIFFERENT {
-            write_to_file("\nhttp3 request has different header:\n").expect("Write failed 4");
-            if let Some(s) = d.h3_vs.iter().next() {
-                
-                // ingore specific difference
-                if s.contains("\"Android WebView\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"") {
-                    continue;
+                if !body_set.contains(s) {
+                    write_to_file("\nhttp3 request has specific body:\n").expect("Write failed 2");
+                    write_to_file(s).expect("Write failed 2.5");
+                    body_set.insert(s.to_string());
                 }
+            }
+            // write_to_file("\nhttp3 request has specific body:\n").expect("Write failed 2");
+            // if let Some(s) = d.h3_vs.iter().next() {
+            //     write_to_file(s).expect("Write failed 3");
+            // }
+        } else if d.diff == DiffType::DIFFERENT {
 
-                let fmt_s = format!("\nHeader: {}\nValue in http3:\n{}\n", d.diff_header, s);
-                write_to_file(&fmt_s).expect("Write failed 5");
+            if let Some(s) = d.h3_vs.iter().next() {
+                if !header_diff_set.contains(s) {
+                    write_to_file("\nhttp3 request has different header:\n").expect("Write failed 4");
+                    let fmt_s = format!("\nHeader: {}\nValue in http3:\n{}\n", d.diff_header, s);
+                    write_to_file(&fmt_s).expect("Write failed 5");
+                    header_diff_set.insert(s.to_string());
+                }
             }
+
+            // write_to_file("\nhttp3 request has different header:\n").expect("Write failed 4");
+            // if let Some(s) = d.h3_vs.iter().next() {
+                
+            //     // ingore specific difference
+            //     if s.contains("\"Android WebView\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"") {
+            //         continue;
+            //     }
+
+            //     let fmt_s = format!("\nHeader: {}\nValue in http3:\n{}\n", d.diff_header, s);
+            //     write_to_file(&fmt_s).expect("Write failed 5");
+            // }
         } else {
-            write_to_file("\nhttp3 request has distinct header:\n").expect("Write failed 6");
-            let fmt_1 = format!("\nHttp3 specific Header: {}\n", d.diff_header);
-            write_to_file(&fmt_1).expect("Write failed 7");
-            write_to_file("\nCaptured value of this header:\n").expect("Write failed 8");
+
+            let mut tmp_set = HashSet::new();
+
             for v in d.h3_vs {
-                let fmt_2 = format!("{}\n", v);
-                write_to_file(&fmt_2).expect("Write failed 8");
+                if !header_dist_set.contains(&v) {
+                    tmp_set.insert(v.clone());
+                }
             }
+
+            if tmp_set.len() > 0 {
+                write_to_file("\nhttp3 request has distinct header:\n").expect("Write failed 6");
+                let fmt_1 = format!("\nHttp3 specific Header: {}\n", d.diff_header);
+                write_to_file(&fmt_1).expect("Write failed 7");
+                write_to_file("\nCaptured value of this header:\n").expect("Write failed 8");
+                for v in tmp_set {
+                    let fmt_2 = format!("{}\n", v);
+                    write_to_file(&fmt_2).expect("Write failed 8");
+                    header_dist_set.insert(v);
+                }
+            }
+
+            // write_to_file("\nhttp3 request has distinct header:\n").expect("Write failed 6");
+            // let fmt_1 = format!("\nHttp3 specific Header: {}\n", d.diff_header);
+            // write_to_file(&fmt_1).expect("Write failed 7");
+            // write_to_file("\nCaptured value of this header:\n").expect("Write failed 8");
+            // for v in d.h3_vs {
+            //     let fmt_2 = format!("{}\n", v);
+            //     write_to_file(&fmt_2).expect("Write failed 8");
+            // }
         }
         write_to_file("\n\n= = = = = = = = = = = = = = = = = = = =\n\n").expect("Write failed 9");
     }
 
     write_to_file("\n\n+ + + + + + + + + + + + + + + + + + + +\n\n").expect("Write failed 10");
+    let fmt_1 = format!("overall distinct body: {}", body_set.len());
+    write_to_file(&fmt_1).expect("Write failed 11");
+    let fmt_2 = format!("overall different header: {}", header_diff_set.len());
+    write_to_file(&fmt_2).expect("Write failed 12");
+    let fmt_3 = format!("overall distinct header: {}", header_dist_set.len());
+    write_to_file(&fmt_3).expect("Write failed 13");
     
 }
 
