@@ -71,7 +71,8 @@ async fn get_mongo_client() -> Arc<Client> {
 }
 
 async fn get_database() -> Database {
-    get_mongo_client().await.database("requestdb")
+    // get_mongo_client().await.database("requestdb")
+    get_mongo_client().await.database("requestdbv2")
 }
 
 static USING_QUIC: OnceCell<bool> = OnceCell::const_new();

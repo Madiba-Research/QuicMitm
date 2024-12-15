@@ -34,6 +34,63 @@ use serde::{Deserialize, Serialize};
 
 
 
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RecordInMONGODBv2 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub request_v2: RequestInMONGOv2,
+    pub response_v2: ResponseInMONGOv2,
+    pub conn_info_v2: ConnectionInfoInMONGODBv2,
+
+    // info for NetworkData
+    pub app: String,
+    pub withquic: bool,
+
+    pub time_stamp: u64,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ConnectionInfoInMONGODBv2 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub source_addr: String,
+    pub dest_addr: String,
+    pub is_tls: bool,
+    pub timestamp: u64,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RequestInMONGOv2 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub method: String,
+    pub path: String,
+
+    pub header: HashMap<String, String>,
+    pub body: Vec<u8>,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseInMONGOv2 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub status_code: u32,
+    pub header: HashMap<String, String>,
+    pub body: Vec<u8>,
+}
+
+
+
+
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RequestInMONGO {
     #[serde(skip_serializing_if = "Option::is_none")]
