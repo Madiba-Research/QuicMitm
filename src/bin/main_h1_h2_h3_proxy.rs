@@ -3,14 +3,14 @@ use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 use futures::future;
 use h3::quic::BidiStream;
 
-use h3server::{headers_to_hashmap, version_to_string, RequestInMONGO};
+use h3server::{headers_to_hashmap, version_to_string, ConnectionInfoInMONGODBv2, RecordInMONGODBv2, RequestInMONGO, RequestInMONGOv2};
 // use h3server::create_http_request_type;
 use http::{request::Parts, Response};
 use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
-use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
+use mongodb::{change_stream::session, options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
 // use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
@@ -72,13 +72,14 @@ async fn get_mongo_client() -> Arc<Client> {
 
 async fn get_database() -> Database {
     // get_mongo_client().await.database("requestdb")
-    get_mongo_client().await.database("requestdbv2")
+    get_mongo_client().await.database("requestdb2")
 }
 
 static USING_QUIC: OnceCell<bool> = OnceCell::const_new();
 
 static PACKAGE_NAME: OnceCell<String> = OnceCell::const_new();
 
+static SESSION_TIMESTAMP: OnceCell<u64> = OnceCell::const_new();
 
 
 
@@ -110,6 +111,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
 
     PACKAGE_NAME.set(args[2].to_string()).expect("Failed to set package_name for current proxy work");
+
+    let now = std::time::SystemTime::now();
+    let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+    let millis = duration_since_epoch.as_millis() as u64;
+    SESSION_TIMESTAMP.set(millis).expect("Failed to set the session timestamp");
 
     if args[1] == "h2h3" {
         USING_QUIC.set(true)?;
@@ -156,6 +163,9 @@ async fn proxy_tcp_tls(
     tcp_stream: TcpStream,
     tls_acceptor: TlsAcceptor
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+
+    let source_addr_str = tcp_stream.peer_addr()?.to_string();
+
     match tls_acceptor.accept(tcp_stream).await {
         Ok(client_tls_stream) => {
             // obtain domain name from tls connection
@@ -182,6 +192,7 @@ async fn proxy_tcp_tls(
                     .to_owned();
 
                 let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
+                let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
                 let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
                 let server_io = TokioIo::new(server_tls_stream);
                 let (h2_server_send, h2_server_conn) = hyper::client::conn::http2::handshake
@@ -198,7 +209,7 @@ async fn proxy_tcp_tls(
 
                 let _ = http2::Builder::new(TokioExecutor)
                     .serve_connection(client_io, service_fn(move |h2_req| {
-                        handle_http2_tunnel(h2_req, h2_server_send.clone())
+                        handle_http2_tunnel(h2_req, h2_server_send.clone(), source_addr_str.clone(), dest_addr_str.clone())
                     }))
                     .await;
 
@@ -213,7 +224,7 @@ async fn proxy_tcp_tls(
 
                 let _ = http1::Builder::new()
                     .serve_connection(client_io, service_fn(move |req_http1| {
-                        handle_http1_tunnel(req_http1, server_name_clone.clone(), proxy_config_clone.clone())
+                        handle_http1_tunnel(req_http1, server_name_clone.clone(), proxy_config_clone.clone(), source_addr_str.clone())
                     }))
                     .await;
 
@@ -250,10 +261,27 @@ async fn proxy_tcp_tls(
 async fn handle_http2_tunnel(
     client_req: hyper::Request<hyper::body::Incoming>,
     mut server_send: hyper::client::conn::http2::SendRequest<Full<Bytes>>,
+    source_addr_str: String,
+    dest_addr_str: String,
 ) -> Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>> {
 
     // Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>>
     // Result<hyper::Response<Full<Bytes>>, Box<dyn std::error::Error + Sync + Send>>
+
+    // connection info
+    let now = std::time::SystemTime::now();
+    let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+    let millis = duration_since_epoch.as_millis() as u64;
+
+    let conn_info_doc = ConnectionInfoInMONGODBv2 {
+        _id: None,
+        source_addr: source_addr_str,
+        dest_addr: dest_addr_str,
+        is_tls: true,
+        timestamp: millis,
+    };
+
     
     // write into mongodb
     let (req_parts, req_body) = client_req.into_parts();
@@ -263,6 +291,16 @@ async fn handle_http2_tunnel(
     let req_body_byte = req_body.collect().await?.to_bytes();
     let req_body_vec = req_body_byte.to_vec();
 
+    // request
+    let req_doc = RequestInMONGOv2 {
+        _id: None,
+        method: req_parts.method.to_string(),
+        path: req_parts.uri.path().to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
+
     // deal with data storage field
     let mut package_name = String::new();
     if let Some(p) = PACKAGE_NAME.get() {
@@ -271,48 +309,47 @@ async fn handle_http2_tunnel(
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
-    // request:
-    // string method = 1; +
-    // string path = 2; + uri
-    // repeated Header headers = 3; +
-    // repeated Header trailers = 4; -
-    // bytes body = 5; +
+    let session_timestamp =  SESSION_TIMESTAMP.get().expect("cannot get session timestamp");
 
-    // response: -
-    // uint32 status_code = 1;
-    // repeated Header headers = 2;
-    // repeated Header trailers = 3;
-    // bytes body = 4;
-
-    // connectionInfo
-    // string source_address = 1; +
-    // string destination_address = 2; +
-    // bool tls = 3; +
-    // uint64 timestamp = 4; +
-
-    let now = OffsetDateTime::now_utc();
-    let timestamp = now.unix_timestamp() as u64;
-
-    let doc = RequestInMONGO {
+    let record_doc = RecordInMONGODBv2 {
         _id: None,
-        app: package_name.to_string(),
+        request_v2: req_doc,
+        conn_info_v2: conn_info_doc,
+        app: package_name,
         withquic: using_quic.clone(),
-        uri: req_parts.uri.to_string(),
-        method: req_parts.method.to_string(),
-        version: req_version,
-        header: req_hash_header,
-        body: req_body_vec,
-        
-        bodytype: None,
-        bodyplaintext: None,
-
-        tls: true,
-        time: timestamp,
+        time_stamp: session_timestamp.clone(),
     };
 
+    // let now = OffsetDateTime::now_utc();
+    // let timestamp = now.unix_timestamp() as u64;
+
+    // let doc = RequestInMONGO {
+    //     _id: None,
+    //     app: package_name.to_string(),
+    //     withquic: using_quic.clone(),
+    //     uri: req_parts.uri.to_string(),
+    //     method: req_parts.method.to_string(),
+    //     version: req_version,
+    //     header: req_hash_header,
+    //     body: req_body_vec,
+        
+    //     bodytype: None,
+    //     bodyplaintext: None,
+
+    //     tls: true,
+    //     time: timestamp,
+    // };
+
+    // println!("in connecting db h2");
+    // let db_col = get_database().await.collection("httpreq");
+    // match db_col.insert_one(doc).await {
+    //     Ok(rst) => { println!("insert rst: {:?}", rst) },
+    //     Err(e) => { println!("insert err: {}", e) },
+    // };
+
     println!("in connecting db h2");
-    let db_col = get_database().await.collection("httpreq");
-    match db_col.insert_one(doc).await {
+    let db_col = get_database().await.collection("httpreq2");
+    match db_col.insert_one(record_doc).await {
         Ok(rst) => { println!("insert rst: {:?}", rst) },
         Err(e) => { println!("insert err: {}", e) },
     };
@@ -342,6 +379,7 @@ async fn handle_http1_tunnel(
     client_req: hyper::Request<hyper::body::Incoming>,
     server_name: String,
     proxy_config: rustls::ClientConfig,
+    source_addr_str: String,
 ) -> Result<hyper::Response<hyper::body::Incoming>, Box<dyn std::error::Error + Sync + Send>> {
     let server_port = server_name.clone() + ":443";
 
@@ -351,6 +389,8 @@ async fn handle_http1_tunnel(
         .to_owned();
 
     let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
+    let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
+
     let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
 
     let server_io = TokioIo::new(server_tls_stream);
@@ -362,6 +402,20 @@ async fn handle_http1_tunnel(
         }
     });
 
+    // connection info
+    let now = std::time::SystemTime::now();
+    let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+    let millis = duration_since_epoch.as_millis() as u64;
+
+    let conn_info_doc = ConnectionInfoInMONGODBv2 {
+        _id: None,
+        source_addr: source_addr_str,
+        dest_addr: dest_addr_str,
+        is_tls: true,
+        timestamp: millis,
+    };
+
     // check request, write into mongodb
     let (req_parts, req_body) = client_req.into_parts();
 
@@ -369,6 +423,15 @@ async fn handle_http1_tunnel(
     let req_hash_header = headers_to_hashmap(&req_parts.headers);
     let req_body_byte = req_body.collect().await?.to_bytes();
     let req_body_vec = req_body_byte.to_vec();
+
+    let req_doc = RequestInMONGOv2 {
+        _id: None,
+        method: req_parts.method.to_string(),
+        path: req_parts.uri.path().to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
 
     // deal with data storage field
     let mut package_name = String::new();
@@ -378,29 +441,47 @@ async fn handle_http1_tunnel(
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
-    let now = OffsetDateTime::now_utc();
-    let timestamp = now.unix_timestamp() as u64;
+    let session_timestamp =  SESSION_TIMESTAMP.get().expect("cannot get session timestamp");
 
-    let doc = RequestInMONGO {
+    let record_doc = RecordInMONGODBv2 {
         _id: None,
-        app: package_name.to_string(),
+        request_v2: req_doc,
+        conn_info_v2: conn_info_doc,
+        app: package_name,
         withquic: using_quic.clone(),
-        uri: req_parts.uri.to_string(),
-        method: req_parts.method.to_string(),
-        version: req_version,
-        header: req_hash_header,
-        body: req_body_vec,
-        
-        bodytype: None,
-        bodyplaintext: None,
-
-        tls: true,
-        time: timestamp,
+        time_stamp: session_timestamp.clone(),
     };
 
+    // let now = OffsetDateTime::now_utc();
+    // let timestamp = now.unix_timestamp() as u64;
+
+    // let doc = RequestInMONGO {
+    //     _id: None,
+    //     app: package_name.to_string(),
+    //     withquic: using_quic.clone(),
+    //     uri: req_parts.uri.to_string(),
+    //     method: req_parts.method.to_string(),
+    //     version: req_version,
+    //     header: req_hash_header,
+    //     body: req_body_vec,
+        
+    //     bodytype: None,
+    //     bodyplaintext: None,
+
+    //     tls: true,
+    //     time: timestamp,
+    // };
+
+    // println!("in connecting db h1");
+    // let db_col = get_database().await.collection("httpreq");
+    // match db_col.insert_one(doc).await {
+    //     Ok(rst) => { println!("insert rst: {:?}", rst) },
+    //     Err(e) => { println!("insert err: {}", e) },
+    // };
+
     println!("in connecting db h1");
-    let db_col = get_database().await.collection("httpreq");
-    match db_col.insert_one(doc).await {
+    let db_col = get_database().await.collection("httpreq2");
+    match db_col.insert_one(record_doc).await {
         Ok(rst) => { println!("insert rst: {:?}", rst) },
         Err(e) => { println!("insert err: {}", e) },
     };
@@ -488,6 +569,8 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     let proxy_conn = conn.await?;
 
+    let source_addr_str = proxy_conn.remote_address().to_string();
+
     let server_domain = proxy_conn
         .handshake_data()
         .unwrap()
@@ -520,11 +603,13 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
+    let dest_addr_str = server_conn.remote_address().to_string();
+
     let h3_quinn_server_conn = h3_quinn::Connection::new(server_conn);
     
     let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
 
-    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn).await;
+    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, dest_addr_str).await;
     
     proxy_endpoint.wait_idle().await;
     Ok(())
@@ -534,6 +619,8 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 async fn accept_bi_streams(
     mut proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>,
     h3_quinn_server_conn: h3_quinn::Connection,
+    source_addr_str: String,
+    dest_addr_str: String,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
 
     let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
@@ -552,7 +639,7 @@ async fn accept_bi_streams(
         let req_server_stream = send_request.send_request(client_req_stream.0).await?;
         
         tokio::spawn(
-            handle_tunnel_stream(client_req_stream.1, req_server_stream, req_parts)
+            handle_tunnel_stream(client_req_stream.1, req_server_stream, req_parts, source_addr_str.clone(), dest_addr_str.clone())
         );
     }
 
@@ -570,6 +657,8 @@ async fn handle_tunnel_stream<T>(
     mut to_client_stream: h3::server::RequestStream<T, Bytes>,
     mut to_server_stream: h3::client::RequestStream<T, Bytes>,
     client_req_parts: Parts,
+    source_addr_str: String,
+    dest_addr_str: String,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>>
 where T: BidiStream<Bytes> {
 
@@ -582,10 +671,35 @@ where T: BidiStream<Bytes> {
     }
     to_server_stream.finish().await?;
 
+
+    // connection info
+    let now = std::time::SystemTime::now();
+    let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+    let millis = duration_since_epoch.as_millis() as u64;
+
+    let conn_info_doc = ConnectionInfoInMONGODBv2 {
+        _id: None,
+        source_addr: source_addr_str,
+        dest_addr: dest_addr_str,
+        is_tls: true,
+        timestamp: millis,
+    };
     
     // write into mongodb
     let req_version = version_to_string(&client_req_parts.version);
     let req_hash_header = headers_to_hashmap(&client_req_parts.headers);
+
+    let req_doc = RequestInMONGOv2 {
+        _id: None,
+        // method: req_parts.method.to_string(),
+        method: client_req_parts.method.to_string(),
+        // path: req_parts.uri.path().to_string(),
+        path: client_req_parts.uri.path().to_string(),
+        version: req_version,
+        header: req_hash_header,
+        body: req_body_vec,
+    };
 
     // deal with data storage field
     let mut package_name = String::new();
@@ -595,29 +709,47 @@ where T: BidiStream<Bytes> {
 
     let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
 
-    let now = OffsetDateTime::now_utc();
-    let timestamp = now.unix_timestamp() as u64;
-    
-    let doc = RequestInMONGO {
-        _id: None,
-        app: package_name.to_string(),
-        withquic: using_quic.clone(),
-        uri: client_req_parts.uri.to_string(),
-        method: client_req_parts.method.to_string(),
-        version: req_version,
-        header: req_hash_header,
-        body: req_body_vec,
-        
-        bodytype: None,
-        bodyplaintext: None,
+    let session_timestamp =  SESSION_TIMESTAMP.get().expect("cannot get session timestamp");
 
-        tls: true,
-        time: timestamp,
+    let record_doc = RecordInMONGODBv2 {
+        _id: None,
+        request_v2: req_doc,
+        conn_info_v2: conn_info_doc,
+        app: package_name,
+        withquic: using_quic.clone(),
+        time_stamp: session_timestamp.clone(),
     };
 
+    // let now = OffsetDateTime::now_utc();
+    // let timestamp = now.unix_timestamp() as u64;
+    
+    // let doc = RequestInMONGO {
+    //     _id: None,
+    //     app: package_name.to_string(),
+    //     withquic: using_quic.clone(),
+    //     uri: client_req_parts.uri.to_string(),
+    //     method: client_req_parts.method.to_string(),
+    //     version: req_version,
+    //     header: req_hash_header,
+    //     body: req_body_vec,
+        
+    //     bodytype: None,
+    //     bodyplaintext: None,
+
+    //     tls: true,
+    //     time: timestamp,
+    // };
+
+    // println!("in connecting db h3");
+    // let db_col = get_database().await.collection("httpreq");
+    // match db_col.insert_one(doc).await {
+    //     Ok(rst) => { println!("insert rst: {:?}", rst) },
+    //     Err(e) => { println!("insert err: {}", e) },
+    // };
+
     println!("in connecting db h3");
-    let db_col = get_database().await.collection("httpreq");
-    match db_col.insert_one(doc).await {
+    let db_col = get_database().await.collection("httpreq2");
+    match db_col.insert_one(record_doc).await {
         Ok(rst) => { println!("insert rst: {:?}", rst) },
         Err(e) => { println!("insert err: {}", e) },
     };

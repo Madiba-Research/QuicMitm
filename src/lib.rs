@@ -41,7 +41,7 @@ pub struct RecordInMONGODBv2 {
     pub _id: Option<ObjectId>,
 
     pub request_v2: RequestInMONGOv2,
-    pub response_v2: ResponseInMONGOv2,
+    // pub response_v2: ResponseInMONGOv2,
     pub conn_info_v2: ConnectionInfoInMONGODBv2,
 
     // info for NetworkData
@@ -71,21 +71,22 @@ pub struct RequestInMONGOv2 {
 
     pub method: String,
     pub path: String,
+    pub version: String,
 
     pub header: HashMap<String, String>,
     pub body: Vec<u8>,
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ResponseInMONGOv2 {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub _id: Option<ObjectId>,
+// #[derive(Serialize, Deserialize, Debug)]
+// pub struct ResponseInMONGOv2 {
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub _id: Option<ObjectId>,
 
-    pub status_code: u32,
-    pub header: HashMap<String, String>,
-    pub body: Vec<u8>,
-}
+//     pub status_code: u32,
+//     pub header: HashMap<String, String>,
+//     pub body: Vec<u8>,
+// }
 
 
 
