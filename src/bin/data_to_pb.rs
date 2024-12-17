@@ -1,11 +1,13 @@
-use std::io::Read;
+use std::{io::{Read, Write}, path::Path};
 
 use futures::StreamExt;
-use hyper_util::server::conn;
+// use h3::client::new;
+// use hyper_util::server::conn;
 use mongodb::{ bson::doc, options::{ ClientOptions, ServerApi, ServerApiVersion }, Client, Collection };
 use prost::Message;
 
 use h3server::RecordInMONGODBv2;
+
 
 include!(concat!(env!("OUT_DIR"), "/data.rs"));
 
@@ -43,7 +45,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }).await?;
 
     // convert to pb message
+    // prepare the NetworkData pb
+    let mut pkg_name: String = "".to_string();
+    let mut data_timestamp: u64 = 0;
+    let mut record_vec: Vec<Record> = Vec::new();
+
     while let Some(Ok(record)) = cursor.next().await {
+        
         // connection info pb
         let conn_info = record.conn_info_v2;
         let conn_info_pb = ConnectionInfo {
@@ -57,8 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // solve mitm decode
         let mut req = record.request_v2;
 
-        // req pb
-
+        // request pb
         if req.header.contains_key("content-encoding") {
             let encoding = req.header.get("content-encoding").unwrap().to_lowercase();
 
@@ -102,24 +109,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             }
         }
 
-        // let mut req_headers_pb = Vec::new();
-        // for (k, v) in req.header {
-        //     let h_pb = Header { key: k, value: v };
-        //     req_headers_pb.push(h_pb);
-        // }
-        // let req_trailers_pb: Vec<Header> = Vec::new();
+        let mut req_headers_pb = Vec::new();
+        for (k, v) in req.header {
+            let h_pb = Header { key: k, value: v };
+            req_headers_pb.push(h_pb);
+        }
+        let req_trailers_pb: Vec<Header> = Vec::new();
 
-        // 
+        let req_pb = Request {
+            method: req.method,
+            path: req.path,
+            headers: req_headers_pb,
+            trailers: req_trailers_pb,
+            body: req.body,
+        };
 
-        // let req_pb = Request {
-        //     method: req.method,
-        //     path: req.path,
-        //     headers: req_headers_pb,
-        //     trailers: req_trailers_pb,
-        //     body: 
-        // };
+        // make record_pb
+        let websocket_pb: Vec<WebSocketMessage> = Vec::new();
+        let record_pb = Record {
+            request: Some(req_pb),
+            response: None,
+            websocket: websocket_pb,
+            connection_info: Some(conn_info_pb),
+        };
+
+        // update NetworkData data
+        pkg_name = record.app;
+        data_timestamp = record.time_stamp;
+        record_vec.push(record_pb);
     }
 
+    // let session_id = data_timestamp.clone();
+    let pkg = pkg_name.clone();
+
+    // make NetworkData pb
+    let network_data_pb = NetworkData {
+        pkg_name,
+        records: record_vec,
+        timestamp: data_timestamp,
+    };
+
+    let _ = std::fs::create_dir_all("pbdata")?;
+    let app_events = format!("pbdata/{}_{}.pb", pkg, args[2]);
+    let app_events_path = Path::new(&app_events);
+    
+    // write to pb file
+    let file = std::fs::File::create(&app_events_path)?;
+    let mut buf = Vec::new();
+    let _ = network_data_pb.encode(&mut buf)?;
+    let mut writer = std::io::BufWriter::new(file);
+    let _ = writer.write_all(&buf)?;
+    
 
     Ok(())
 }
