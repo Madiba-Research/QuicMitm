@@ -1,0 +1,84 @@
+{
+    "email": [
+        "shaoqi"
+    ],
+    "adid": [
+        "0e815aac-526c-455b-b554-38359560d20b"
+    ],
+    "imei": [
+        "357723162494120"
+    ],
+    "contact_phone": [
+        "250-8841"
+    ],
+    "contact_name": [
+        "jamionfsaa"
+    ],
+    "call_history_number": [
+        "872-2422"
+    ],
+    "serial": [
+        "19261fdf60051d"
+    ],
+    "abi": [
+        "arm64-v8a"
+    ],
+    "model": [
+        "pixel 6"
+    ],
+    "timezone": [
+        "america/toronto"
+    ],
+    "resolution": [
+        "1080x2400",
+        "1080*2400"
+    ],
+    "cpu": [
+        "gs101"
+    ],
+    "device_name": [
+        "oriole"
+    ],
+    "finger_print": [
+        "google/oriole/oriole:13/TQ3A.230901.001/10750268:user/release-keys"
+    ],
+    "bootloader": [
+        "slider-1.2-9883526"
+    ],
+    "displayid": [
+        "tq3a.230901.001"
+    ],
+    "wifi_mac": [
+        "0c:c4:13:19:10:03"
+    ],
+    "wifi_ip": [
+        "172.30.143.61"
+    ],
+    "gateway": [
+        "172.30.143.1"
+    ],
+    "proxy_addr": [
+        "172.30.143.69"
+    ],
+    "my_wifi_essid": [
+        "droid-ev10173"
+    ],
+    "my_wifi_bssid": [
+        "c8:f9:f9:a0:e9:33",
+        "c8:f9:f9:a0:e9:3c"
+    ],
+    "other_wifi_essid": [
+        "concordiaguest"
+    ],
+    "other_wifi_bssid": [
+        "00:22:55:74:f7:82",
+        "00:22:90:a1:36:24",
+        "00:22:90:ea:d9:73",
+        "c8:f9:f9:a0:e9:32",
+        "c8:f9:f9:a0:e9:3d",
+        "c8:f9:f9:a1:35:62"
+    ],
+    "wifi_ipv6": [
+        "fe80::eeae:8ded:78cd:6485"
+    ]
+}
