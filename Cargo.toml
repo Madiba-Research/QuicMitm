@@ -72,6 +72,8 @@ tracing-futures = { version = "0.2.0", default-features = false, features = ["st
 tracing-subscriber = { version = "0.3.0", default-features = false, features = ["env-filter", "fmt", "ansi", "time", "local-time"] }
 zip = "2.2.1"
 zstd = "0.13.2"
+# reqwest = { version = "0.10", features = ["blocking", "json"] }
+brotli-decompressor = "4.0.1"
 
 
 [build-dependencies]

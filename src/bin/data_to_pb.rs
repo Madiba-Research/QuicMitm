@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use futures::StreamExt;
 use hyper_util::server::conn;
 use mongodb::{ bson::doc, options::{ ClientOptions, ServerApi, ServerApiVersion }, Client, Collection };
@@ -51,24 +53,71 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             timestamp: conn_info.timestamp,
         };
 
+
+        // solve mitm decode
+        let mut req = record.request_v2;
+
         // req pb
-        let req = record.request_v2;
 
-        let mut req_headers_pb = Vec::new();
-        for (k, v) in req.header {
-            let h_pb = Header { key: k, value: v };
-            req_headers_pb.push(h_pb);
+        if req.header.contains_key("content-encoding") {
+            let encoding = req.header.get("content-encoding").unwrap().to_lowercase();
+
+            if encoding == "gzip" {
+                let body_clone = req.body.clone();
+                let mut decoder = flate2::read::GzDecoder::new(&body_clone[..]);
+                let mut text = vec![];
+                if let Ok(_) = decoder.read_to_end(&mut text) {
+                    req.body = text;
+                    req.header.remove_entry("content-encoding");
+                }
+            } else if encoding == "deflate" {
+                let body_clone = req.body.clone();
+                let mut decoder = flate2::read::DeflateDecoder::new(&body_clone[..]);
+                let mut text = vec![];
+                if let Ok(_) = decoder.read_to_end(&mut text) {
+                    req.body = text;
+                    req.header.remove_entry("content-encoding");
+                }
+            } else if encoding == "identity" {
+                req.header.remove_entry("content-encoding");
+            } else if encoding == "br" {
+                let body_clone = req.body.clone();
+                let mut decoder = brotli_decompressor::Decompressor::new(&body_clone[..], 4096);
+                let mut text = vec![];
+                if let Ok(_) = decoder.read_to_end(&mut text) {
+                    req.body = text;
+                    req.header.remove_entry("content-encoding");
+                }
+            } else if encoding == "zstd" {
+                let body_clone = req.body.clone();
+                if let Ok(mut decoder) = zstd::stream::read::Decoder::new(&body_clone[..]) {
+                    let mut text = vec![];
+                    if let Ok(_) = decoder.read_to_end(&mut text) {
+                        req.body = text;
+                        req.header.remove_entry("content-encoding");
+                    }
+                };
+            } else {
+                continue;
+            }
         }
-        let req_trailers_pb: Vec<Header> = Vec::new();
 
-        todo!("body decode");
-        let req_pb = Request {
-            method: req.method,
-            path: req.path,
-            headers: req_headers_pb,
-            trailers: req_trailers_pb,
-            body: 
-        };
+        // let mut req_headers_pb = Vec::new();
+        // for (k, v) in req.header {
+        //     let h_pb = Header { key: k, value: v };
+        //     req_headers_pb.push(h_pb);
+        // }
+        // let req_trailers_pb: Vec<Header> = Vec::new();
+
+        // 
+
+        // let req_pb = Request {
+        //     method: req.method,
+        //     path: req.path,
+        //     headers: req_headers_pb,
+        //     trailers: req_trailers_pb,
+        //     body: 
+        // };
     }
 
 
