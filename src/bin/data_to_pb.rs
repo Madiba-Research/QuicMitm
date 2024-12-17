@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         println!("need 2 args for the generating csv, the second arg as package name");
         return Ok(());
     }
-    if args[2] != "h2" || args[2] != "h2h3" {
+    if args[2] != "h2" && args[2] != "h2h3" {
         println!("the 3rd arg can only be h2 or h2h3");
         return Ok(());
     }
@@ -159,6 +159,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _ = network_data_pb.encode(&mut buf)?;
     let mut writer = std::io::BufWriter::new(file);
     let _ = writer.write_all(&buf)?;
+
+    let _ = writer.flush()?;
     
 
     Ok(())

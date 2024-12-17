@@ -21,8 +21,8 @@ path = "src/bin/main_h1_h2_h3_proxy.rs"
 # path = "src/bin/raw_db_to_pb.rs"
 
 [[bin]]
-name = "process_db_data"
-path = "src/bin/process_db_data.rs"
+name = "data_to_pb"
+path = "src/bin/data_to_pb.rs"
 
 [[bin]]
 name = "read_csv_generate_report"
