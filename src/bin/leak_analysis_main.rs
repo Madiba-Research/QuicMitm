@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("Please provide the path to the leak file".into());
     };
     let Some(app) = args.get(4) else {
-        return Err("Please provide the path to the leak file".into());
+        return Err("Please provide the app package name".into());
     };
 
     let leak_item_file = stdfile::open(leak_file)?;
@@ -119,7 +119,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             app, session
         ))
         .unwrap(),
-        &network_connections,
+        &versioned_network_connections,
     )
     .unwrap();
 
