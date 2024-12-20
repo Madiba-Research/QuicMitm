@@ -1,6 +1,9 @@
 use std::{collections::{HashMap, HashSet}, fs::File as stdfile, sync::Arc};
+use futures::StreamExt;
 use h3server::leak;
+use mongodb::{bson::doc, options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Collection};
 use prost::Message;
+use serde::{Deserialize, Serialize};
 use tokio::{
     fs::{read_dir, File},
     io::AsyncReadExt,
@@ -49,17 +52,54 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // corresponding to main, line 59
     let mut network_connections = fake_get_network_connections(&network_leaks);
 
+    // prepare mongodb
+    let mongodb_uri = "mongodb://localhost:27017";
+    let mut client_options = ClientOptions::parse(mongodb_uri).await?;
+    // Set the server_api field of the client_options object to Stable API version 1
+    let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+    client_options.server_api = Some(server_api);
+    // Create a new client and connect to the server
+    let client = Client::with_options(client_options)?;
+    let my_coll: Collection<h3server::RecordInMONGODBv2> = client.database("requestdb2").collection("httpreq2");
+    let mut cursor = my_coll
+        .find(doc! {
+            "app": app,
+            "withquic": session == "h2h3",
+        }).await?;
+
+    let mut versioned_network_connections = Vec::<VersionedNetworkConnection>::new();
+    while let Some(Ok(record)) = cursor.next().await {
+        let ncs: Vec<_> = network_connections
+            .iter()
+            .filter(|c| c.ts == record.conn_info_v2.timestamp as u128)
+            .cloned()
+            .collect();
+        if let Some(nc) = ncs.first() {
+            versioned_network_connections.push(VersionedNetworkConnection {
+                version: record.request_v2.version.clone(),
+                src_addr: nc.src_addr.clone(),
+                destination_addr: nc.destination_addr.clone(),
+                importance: nc.importance,
+                tid: nc.tid,
+                pid: nc.pid,
+                target: nc.target.clone(),
+                ts: nc.ts,
+                leaks: nc.leaks.clone(),
+            });
+        }
+    }
+
     for (leaks, leak_network_info) in network_leaks {
-        let candidates = network_connections
+        let candidates = versioned_network_connections
             .iter()
             .filter(|c| c.src_addr == leak_network_info.source_address)
             .cloned()
             .collect::<Vec<_>>();
         if let Some(item_index) =
-            find_closest_network_connection(leak_network_info.timestamp as u128, candidates)
-                .and_then(|closest| network_connections.iter().position(|c| c == &closest))
+            find_closest_network_connection_v(leak_network_info.timestamp as u128, candidates)
+                .and_then(|closest| versioned_network_connections.iter().position(|c| c == &closest))
         {
-            if let Some(entry) = network_connections.get_mut(item_index) {
+            if let Some(entry) = versioned_network_connections.get_mut(item_index) {
                 entry.leaks.extend(leaks);
                 entry.destination_addr = Some(leak_network_info.destination_address);
             }
@@ -106,10 +146,10 @@ fn fake_get_network_connections(
     network_connections
 }
 
-pub fn find_closest_network_connection(
+pub fn find_closest_network_connection_v(
     ts: u128,
-    network_connection: Vec<h3server::db::NetworkConnection>,
-) -> Option<h3server::db::NetworkConnection> {
+    network_connection: Vec<VersionedNetworkConnection>,
+) -> Option<VersionedNetworkConnection> {
     let mut smallest_diff = None;
     let mut pkg = None;
     if network_connection.is_empty() {
@@ -137,3 +177,16 @@ pub struct SimplifiedAppData {
     // pub flows: HashMap<(i64, i64), Node>,
 }
 
+
+#[derive(Eq, PartialEq, Debug, Clone, Deserialize, Serialize)]
+pub struct VersionedNetworkConnection {
+    pub version: String,
+    pub src_addr: String,
+    pub destination_addr: Option<String>,
+    pub importance: i32,
+    pub tid: i32,
+    pub pid: i32,
+    pub target: Option<String>,
+    pub ts: u128,
+    pub leaks: HashSet<h3server::db::Leak>,
+}
