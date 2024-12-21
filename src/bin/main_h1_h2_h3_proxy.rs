@@ -192,7 +192,7 @@ async fn proxy_tcp_tls(
                     .to_owned();
 
                 let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
-                let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
+                // let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
                 let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
                 let server_io = TokioIo::new(server_tls_stream);
                 let (h2_server_send, h2_server_conn) = hyper::client::conn::http2::handshake
@@ -209,7 +209,7 @@ async fn proxy_tcp_tls(
 
                 let _ = http2::Builder::new(TokioExecutor)
                     .serve_connection(client_io, service_fn(move |h2_req| {
-                        handle_http2_tunnel(h2_req, h2_server_send.clone(), source_addr_str.clone(), dest_addr_str.clone())
+                        handle_http2_tunnel(h2_req, h2_server_send.clone(), source_addr_str.clone(), server_port.clone())
                     }))
                     .await;
 
@@ -389,7 +389,7 @@ async fn handle_http1_tunnel(
         .to_owned();
 
     let server_tcp_stream = TcpStream::connect(server_port.clone()).await?;
-    let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
+    // let dest_addr_str = server_tcp_stream.peer_addr()?.to_string();
 
     let server_tls_stream = proxy_connector.connect(server_domain, server_tcp_stream).await?;
 
@@ -411,7 +411,8 @@ async fn handle_http1_tunnel(
     let conn_info_doc = ConnectionInfoInMONGODBv2 {
         _id: None,
         source_addr: source_addr_str,
-        dest_addr: dest_addr_str,
+        // dest_addr: dest_addr_str,
+        dest_addr: server_port.clone(),
         is_tls: true,
         timestamp: millis,
     };
@@ -596,20 +597,21 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
     proxy_endpoint.set_default_client_config(proxy_config);
 
     let server_domain_port = server_domain.clone() + ":443";
-    let server_addr = tokio::net::lookup_host(server_domain_port)
+    let server_addr = tokio::net::lookup_host(server_domain_port.clone())
         .await?
         .next()
         .ok_or("dns found no addresses")?;
 
     
     let server_conn = proxy_endpoint.connect(server_addr, &server_domain)?.await?;
-    let dest_addr_str = server_conn.remote_address().to_string();
+    // let dest_addr_str = server_conn.remote_address().to_string();
 
     let h3_quinn_server_conn = h3_quinn::Connection::new(server_conn);
     
     let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
 
-    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, dest_addr_str).await;
+    // let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, dest_addr_str).await;
+    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, server_domain_port.clone()).await;
     
     proxy_endpoint.wait_idle().await;
     Ok(())
