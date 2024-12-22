@@ -124,7 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app_connections_h2: Vec<VersionedNetworkConnection> = serde_json::from_str(&h2_file)?;
     let h2_leaks_h2 = get_leak_set(&app_connections_h2);
     // compare h3 leak and h2 leak in h2
-    let (distinct_leak_h2_2, distinct_leak_h3_2, common_leak_2) = compare_two_leak_sets(&h2_leaks_h2h3, &h3_leaks_h2h3);
+    let (distinct_leak_h2_2, distinct_leak_h3_2, common_leak_2) = compare_two_leak_sets(&h2_leaks_h2, &h3_leaks_h2h3);
 
     // compare two runs of h2 and h2h3
     let h2h3_leaks = get_leak_set(&app_connections_h2h3);
