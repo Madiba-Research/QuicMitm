@@ -150,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     let _ = std::fs::create_dir_all("pbdata")?;
-    let app_events = format!("pbdata/{}_{}.pb", pkg, args[2]);
+    let app_events = format!("pbdata/{}-{}.pb", pkg, args[2]);
     let app_events_path = Path::new(&app_events);
     
     // write to pb file

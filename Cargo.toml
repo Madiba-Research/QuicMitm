@@ -28,6 +28,10 @@ path = "src/bin/data_to_pb.rs"
 name = "leak_analysis_main"
 path = "src/bin/leak_analysis_main.rs"
 
+[[bin]]
+name = "leak_result_main"
+path = "src/bin/leak_result_main.rs"
+
 # [[bin]]
 # name = "read_csv_generate_report"
 # path = "src/bin/read_csv_generate_report.rs"

@@ -34,9 +34,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let leak_table = serde_json::from_reader::<_, HashMap<String, Vec<String>>>(leak_item_file).unwrap();
 
     let mut buf = Vec::new();
-    if let Ok(mut file) = File::open(network_path).await {
-       file.read_to_end(&mut buf).await?;
-    }
+    let network_file_path = format!("{}/{}-{}.pb", network_path, app, session);
+
+    if let Ok(mut file) = File::open(network_file_path).await {
+        file.read_to_end(&mut buf).await?;
+     }
+    // if let Ok(mut file) = File::open(network_path).await {
+    //    file.read_to_end(&mut buf).await?;
+    // }
     let data = h3server::data::NetworkData::decode(buf.as_slice())?;
     let mut app_data = SimplifiedAppData {
         data,
