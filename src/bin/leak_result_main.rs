@@ -163,9 +163,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let result = ResultOutput {
+        // compare, in the h2h3 run, h2 leaks with h3 leaks
         h2h3: c1,
+        // compare the h3 leaks in h2h3 run with all leaks in h2 run
         h3_h2: c2,
+        // compare all the leaks in h2h3 run with all the leaks in h2 run
         h2h3_h2: c3,
+        // the leaks of all h3 domains
         h3_domains,
     };
 
