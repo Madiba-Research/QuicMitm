@@ -8,13 +8,13 @@ description = "proxy server for http1 / http2 / http3"
 name = "main_h1_h2_h3_proxy"
 path = "src/bin/main_h1_h2_h3_proxy.rs"
 
-# [[bin]]
-# name = "main_h3_tls_proxy"
-# path = "src/bin/main_h3_tls_proxy.rs"
+[[bin]]
+name = "main_h3_tls_proxy"
+path = "src/bin/main_h3_tls_proxy.rs"
 
-# [[bin]]
-# name = "main_h1_h2_proxy"
-# path = "src/bin/main_h1_h2_proxy.rs"
+[[bin]]
+name = "main_h1_h2_proxy"
+path = "src/bin/main_h1_h2_proxy.rs"
 
 # [[bin]]
 # name = "raw_db_to_pb"

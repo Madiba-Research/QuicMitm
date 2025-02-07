@@ -2,13 +2,13 @@ forward all tcp and udp packs to 443 into the localhost proxy
 remember to set the server's ip address as --to-destination
 every time after reboot, remember to set iptables
 
-iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.69
-iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.69
+iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.67
+iptables -t nat -A OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.67
 
 to delete a rule for ip table, using flag -D:
 
-iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.69
-iptables -t nat -D OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.69
+iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 172.30.143.67
+iptables -t nat -D OUTPUT -p udp --dport 443 -j DNAT --to-destination 172.30.143.67
 
 list rules: iptables -t nat -L OUTPUT --line-numbers
 
@@ -87,3 +87,18 @@ Some problem that cause the failed capture quic/http3 request: quic handshake fa
 we disable the udp in the second trail, which is the responsiblity of the app to deal with the situation. As in the real world, the access point has the restriction on udp transmission.
 
 
+Block apex udate, specifically for conscrypto:
+    APEX 更新逻辑：
+        APEX 更新文件通常下载到 /data/apex/ 目录（如 /data/apex/active 或 /data/apex/tmp），重启后系统会优先加载此目录下的新版本，覆盖 /system/apex 的原始文件。
+        单纯锁定 /system/apex 的权限无法阻止 /data/apex 的更新（方法三的漏洞）。
+
+    APEX 文件特性：
+        APEX 是只读的压缩镜像，需通过系统服务（apexd）挂载激活，无法直接禁用更新服务（pm disable 对 apexd 无效）。
+
+    原理：阻止系统写入新 APEX 文件到更新目录。
+su
+# 锁定目录权限（阻止创建新文件）
+chmod 500 /data/apex     # 设为只读+执行
+chattr +i /data/apex    # 添加不可修改标志（需 ext4 文件系统）
+# 如果存在子目录（如 /data/apex/active），单独处理：
+chattr +i /data/apex/active

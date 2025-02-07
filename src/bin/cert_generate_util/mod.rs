@@ -18,9 +18,9 @@ use time::{Duration, OffsetDateTime};
 
 fn validity_period() -> (OffsetDateTime, OffsetDateTime) {
 	// let day = Duration::new(86400, 0);
-    let three_month = Duration::new(86400 * 30 * 3, 0);
-	let before = OffsetDateTime::now_utc().checked_sub(three_month).unwrap();
-	let after = OffsetDateTime::now_utc().checked_add(three_month).unwrap();
+    let two_year = Duration::new(86400 * 30 * 2, 0);
+	let before = OffsetDateTime::now_utc().checked_sub(two_year).unwrap();
+	let after = OffsetDateTime::now_utc().checked_add(two_year).unwrap();
 	(before, after)
 }
 

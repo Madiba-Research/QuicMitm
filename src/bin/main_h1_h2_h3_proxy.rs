@@ -106,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let tcp_tls_acceptor = get_h2_config()?;
 
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    let tcp_listener = TcpListener::bind("172.30.143.69:443").await?;
+    let tcp_listener = TcpListener::bind("172.30.143.51:443").await?;
     println!("Tcp binding finished");
 
 
@@ -125,7 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         let endpoint = quinn::Endpoint::server(
             server_config,
             // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 69)), 443),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 51)), 443),
         )?;
         println!("Quic binding finished");
 
@@ -837,8 +837,8 @@ where T: BidiStream<Bytes> {
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
 
-    let ca_cert_file = "democacert.pem";
-    let ca_key_file = "democakey.pem";
+    let ca_cert_file = "democacert2.pem";
+    let ca_key_file = "democakey2.pem";
 
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
@@ -855,8 +855,8 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
 
-    let ca_cert_file = "democacert.pem";
-    let ca_key_file = "democakey.pem";
+    let ca_cert_file = "democacert2.pem";
+    let ca_key_file = "democakey2.pem";
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
