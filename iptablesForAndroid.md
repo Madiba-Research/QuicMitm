@@ -97,8 +97,12 @@ Block apex udate, specifically for conscrypto:
 
     原理：阻止系统写入新 APEX 文件到更新目录。
 su
-# 锁定目录权限（阻止创建新文件）
-chmod 500 /data/apex     # 设为只读+执行
-chattr +i /data/apex    # 添加不可修改标志（需 ext4 文件系统）
 # 如果存在子目录（如 /data/apex/active），单独处理：
 chattr +i /data/apex/active
+
+
+// setting up LSPosed scope
+// 21 is the mid of cryptologger, the example application is Xiaohongshu
+INSERT INTO scope (mid, app_pkg_name, user_id)
+VALUES (21, 'com.xingin.xhs', 0)
+ON CONFLICT(mid, app_pkg_name, user_id) DO NOTHING;
