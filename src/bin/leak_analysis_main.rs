@@ -42,13 +42,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Ok(mut file) = File::open(network_file_path).await {
         file.read_to_end(&mut buf).await?;
-     }
+    }
     // if let Ok(mut file) = File::open(network_path).await {
     //    file.read_to_end(&mut buf).await?;
     // }
 
     // prepare data
     let data = h3server::data::NetworkData::decode(buf.as_slice())?;
+
     // prepare events
     let mut events = Vec::new();
     if let Ok(mut file) = File::open(event_path).await {
@@ -75,13 +76,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     
     // analysis main.rs line 44:
-    let mut leak_table = leak_table.clone();
+    let leak_table = leak_table.clone();
     let leak_items = leak::Leaks::from(leak_table);
 
     let network_leaks = leak_items.extract_leaks(&app_data.data, app_data.cryptographic.clone());
     
     // corresponding to main, line 59
-    let mut network_connections = fake_get_network_connections(&network_leaks);
+    // as we only take network connection
+    let network_connections = fake_get_network_connections(&network_leaks);
 
     // prepare mongodb
     let mongodb_uri = "mongodb://localhost:27017";
@@ -165,6 +167,7 @@ fn fake_get_network_connections(
     for (leaks, connection_info) in network_leaks {
         network_connections.push(h3server::db::NetworkConnection{
             src_addr: connection_info.source_address.clone(),
+            // destination_addr: Some(connection_info.destination_address.clone()),
             destination_addr: None,
             importance: 0,
             tid: 0,
