@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, fs::File as stdfile, sync::Arc};
 use futures::StreamExt;
-use h3server::leak;
+use h3server::{data::AppData, leak};
 use mongodb::{bson::doc, options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Collection};
 use prost::Message;
 use serde::{Deserialize, Serialize};
@@ -20,13 +20,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Some(network_path) = args.get(1) else {
         return Err("Please provide the path to the data directory".into());
     };
-    let Some(session) = args.get(2) else {
+    // path: event path
+    let Some(event_path) = args.get(2) else {
+        return Err("Please provide the path to the event directory".into());
+    };
+    let Some(session) = args.get(3) else {
         return Err("Please provide the session h2 or h2h3".into());
     };
-    let Some(leak_file) = args.get(3) else {
+    let Some(leak_file) = args.get(4) else {
         return Err("Please provide the path to the leak file".into());
     };
-    let Some(app) = args.get(4) else {
+    let Some(app) = args.get(5) else {
         return Err("Please provide the app package name".into());
     };
 
@@ -42,13 +46,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // if let Ok(mut file) = File::open(network_path).await {
     //    file.read_to_end(&mut buf).await?;
     // }
+
+    // prepare data
     let data = h3server::data::NetworkData::decode(buf.as_slice())?;
-    let mut app_data = SimplifiedAppData {
+    // prepare events
+    let mut events = Vec::new();
+    if let Ok(mut file) = File::open(event_path).await {
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).await?;
+        for l in buf.lines() {
+            let event = serde_json::from_str::<h3server::events::Events>(l)?;
+            events.push(event);
+        }
+    }
+    let mut app_data = AppData {
         data,
+        events,
         cryptographic: Default::default(),
+        // we dont need device_id and session in this project
+        device_id: Some("pixel6".to_string()),
+        session: 0 as u64
     };
+    app_data.load_cryptographic();
+    // let mut app_data = SimplifiedAppData {
+    //     data,
+    //     cryptographic: Default::default(),
+    // };
     
-    // analysis main.rs line 40:
+    
+    // analysis main.rs line 44:
     let mut leak_table = leak_table.clone();
     let leak_items = leak::Leaks::from(leak_table);
 
