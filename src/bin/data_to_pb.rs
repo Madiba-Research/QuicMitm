@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // Create a new client and connect to the server
     let client = Client::with_options(client_options)?;
-    let my_coll: Collection<RecordInMONGODBv2> = client.database("requestdb2").collection("httpreq2");
+    let my_coll: Collection<RecordInMONGODBv2> = client.database("requestdb10").collection("httpreq2");
     let mut cursor = my_coll
         .find(doc! {
             "app": &package_name,
@@ -64,6 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         // solve mitm decode
         let mut req = record.request_v2;
+        print!("{}\n", req.path);
 
         // request pb
         if req.header.contains_key("content-encoding") {
@@ -140,7 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 
     // let session_id = data_timestamp.clone();
-    let pkg = pkg_name.clone();
+    // let pkg = pkg_name.clone();
 
     // make NetworkData pb
     let network_data_pb = NetworkData {
@@ -150,7 +151,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     let _ = std::fs::create_dir_all("pbdata")?;
-    let app_events = format!("pbdata/{}-{}.pb", pkg, args[2]);
+    let app_events = format!("pbdata/{}-{}.pb", args[1], args[2]);
     let app_events_path = Path::new(&app_events);
     
     // write to pb file

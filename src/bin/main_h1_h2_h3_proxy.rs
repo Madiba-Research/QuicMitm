@@ -72,7 +72,8 @@ async fn get_mongo_client() -> Arc<Client> {
 
 async fn get_database() -> Database {
     // get_mongo_client().await.database("requestdb")
-    get_mongo_client().await.database("requestdb2")
+    // get_mongo_client().await.database("requestdb2")
+    get_mongo_client().await.database("requestdb10")
 }
 
 static USING_QUIC: OnceCell<bool> = OnceCell::const_new();
@@ -106,7 +107,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let tcp_tls_acceptor = get_h2_config()?;
 
     // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    let tcp_listener = TcpListener::bind("172.30.143.51:443").await?;
+    // let tcp_listener = TcpListener::bind("172.30.143.51:443").await?;
+    let tcp_listener = TcpListener::bind("0.0.0.0:443").await?;
     println!("Tcp binding finished");
 
 
@@ -125,7 +127,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         let endpoint = quinn::Endpoint::server(
             server_config,
             // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 51)), 443),
+            // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 30, 143, 51)), 443),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 443),
         )?;
         println!("Quic binding finished");
 

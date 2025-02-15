@@ -89,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args: Vec<String> = std::env::args().collect();
     let Some(path) = args.get(1) else {
-        return Err("Please provide the path to the data directory".into());
+        return Err("Please provide the path to the leak analysis directory".into());
     };
 
     let Some(app) = args.get(2) else {

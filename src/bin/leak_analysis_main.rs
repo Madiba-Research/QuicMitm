@@ -94,7 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     client_options.server_api = Some(server_api);
     // Create a new client and connect to the server
     let client = Client::with_options(client_options)?;
-    let my_coll: Collection<h3server::RecordInMONGODBv2> = client.database("requestdb2").collection("httpreq2");
+    let my_coll: Collection<h3server::RecordInMONGODBv2> = client.database("requestdb10").collection("httpreq2");
     let mut cursor = my_coll
         .find(doc! {
             "app": app,
