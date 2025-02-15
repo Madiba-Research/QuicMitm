@@ -52,7 +52,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // prepare events
     let mut events = Vec::new();
-    if let Ok(mut file) = File::open(event_path).await {
+    let event_file_path = format!("{}/{}-{}.json", event_path, app, session);
+    if let Ok(mut file) = File::open(event_file_path).await {
         let mut buf = String::new();
         file.read_to_string(&mut buf).await?;
         for l in buf.lines() {

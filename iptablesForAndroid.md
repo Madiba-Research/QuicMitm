@@ -102,7 +102,11 @@ chattr +i /data/apex/active
 
 
 // setting up LSPosed scope
-// 21 is the mid of cryptologger, the example application is Xiaohongshu
+// 21 is the mid (module ID) of cryptologger, the example application is Xiaohongshu
 INSERT INTO scope (mid, app_pkg_name, user_id)
 VALUES (21, 'com.xingin.xhs', 0)
 ON CONFLICT(mid, app_pkg_name, user_id) DO NOTHING;
+
+su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"INSERT INTO scope (mid, app_pkg_name, user_id) VALUES (21, 'com.xingin.xhs', 0) ON CONFLICT(mid, app_pkg_name, user_id) DO NOTHING;\""
+
+su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"DELETE FROM scope WHERE mid = 21 AND app_pkg_name = 'com.xingin.xhs' AND user_id = 0;\""
