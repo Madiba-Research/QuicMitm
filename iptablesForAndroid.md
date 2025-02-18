@@ -115,5 +115,5 @@ Finally, before running the experiment:
 1. computer and phone are using wifi: Droid-EV 10173
 2. check the computer ip address, make sure both iptables' address is correct
 3. make sure the cryptologger has hardcoded the computer ip address
-4. after installing the cryptologger, check its module ID and set it into command txt file
+4. after installing the cryptologger, enable the module, check its module ID and set it into command txt file
 5. allow mongodb docker running
