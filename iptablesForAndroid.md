@@ -110,3 +110,9 @@ ON CONFLICT(mid, app_pkg_name, user_id) DO NOTHING;
 su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"INSERT INTO scope (mid, app_pkg_name, user_id) VALUES (31, 'com.xingin.xhs', 0) ON CONFLICT(mid, app_pkg_name, user_id) DO NOTHING;\""
 
 su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"DELETE FROM scope WHERE mid = 31 AND app_pkg_name = 'com.xingin.xhs' AND user_id = 0;\""
+
+Finally, before running the experiment:
+1. computer and phone are using wifi: Droid-EV 10173
+2. check the computer ip address, make sure both iptables' address is correct
+3. make sure the cryptologger has hardcoded the computer ip address
+4. after installing the cryptologger, check its module ID and set it into command txt file
