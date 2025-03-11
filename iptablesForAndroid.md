@@ -112,6 +112,7 @@ su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"INSERT INTO scope (mid,
 su -c "sqlite3 /data/adb/lspd/config/modules_config.db \"DELETE FROM scope WHERE mid = 31 AND app_pkg_name = 'com.xingin.xhs' AND user_id = 0;\""
 
 Finally, before running the experiment:
+0. to test connectivity of proxy, use 
 1. computer and phone are using wifi: Droid-EV 10173
 2. check the computer ip address, make sure both iptables' address is correct
 3. make sure the cryptologger has hardcoded the computer ip address
