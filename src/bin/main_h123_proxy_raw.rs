@@ -614,11 +614,9 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
     let ca_cert_file = "democacert2.pem";
     let ca_key_file = "democakey2.pem";
 
-    // println!("reading cert files");
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
         .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
-    // println!("after reading cert files");
     // let s_cert_file = std::fs::read("democacert2.der")?;
     // let s_cert = vec![CertificateDer::from(s_cert_file)];
     // let s_key_file = std::fs::read("democakey2.der")?;

@@ -118,3 +118,16 @@ Finally, before running the experiment:
 3. make sure the cryptologger has hardcoded the computer ip address
 4. after installing the cryptologger, enable the module, check its module ID and set it into command txt file
 5. allow mongodb docker running
+
+
+For browser:
+sudo useradd -r -s /bin/false proxyuser
+id proxyuser
+sudo iptables -t nat -A OUTPUT -p tcp --dport 443 -m owner ! --uid-owner proxyuser -j REDIRECT --to-port 443
+sudo iptables -t nat -A OUTPUT -p udp --dport 443 -m owner ! --uid-owner proxyuser -j REDIRECT --to-port 443
+
+sudo iptables -t nat -D OUTPUT -p tcp --dport 443 -m owner ! --uid-owner proxyuser -j REDIRECT --to-port 443
+sudo iptables -t nat -D OUTPUT -p udp --dport 443 -m owner ! --uid-owner proxyuser -j REDIRECT --to-port 443
+
+sudo setcap 'cap_net_bind_service=+ep' target/debug/main_h1_h2_proxy
+sudo -u proxyuser target/debug/main_h1_h2_proxy
