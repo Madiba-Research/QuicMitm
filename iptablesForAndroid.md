@@ -119,6 +119,8 @@ Finally, before running the experiment:
 4. after installing the cryptologger, enable the module, check its module ID and set it into command txt file
 5. allow mongodb docker running
 
+To make sure every app runs well: In Password & account, turn off those options, (i.e., offer to save password)
+
 
 For browser:
 sudo useradd -r -s /bin/false proxyuser
