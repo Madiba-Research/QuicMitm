@@ -241,11 +241,11 @@ async fn handle_http2_tunnel(
     // };
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
-    // println!("request sent h2");
+    println!("request sent h2");
     // println!("{:?}", req_to_server);
 
     let server_resp = server_send.send_request(req_to_server).await?;
-    // println!("resp h2");
+    println!("resp h2");
     // println!("{:?}", server_resp);
 
     Ok(server_resp)
@@ -328,11 +328,11 @@ async fn handle_http1_tunnel(
     // println!("h1 request part: {:?}\n h1 request body: {:?}", req_parts, String::from_utf8_lossy(&req_body_vec));
 
     let req_to_server = hyper::Request::from_parts(req_parts, Full::new(req_body_byte));
-    // println!("request sent h1");
+    println!("request sent h1");
     // println!("{:?}", req_to_server);
     
     let server_resp = server_sender.send_request(req_to_server).await?;
-    // println!("resp h1");
+    println!("resp h1");
     // println!("{:?}", server_resp);
 
 
@@ -467,7 +467,7 @@ async fn accept_bi_streams(
     while let Some(client_req_stream) = proxy_conn.accept().await? {
         // println!("h3 client request: {:?}", client_req_stream.0);
 
-        // println!("h3 send request");
+        println!("h3 send request");
         // println!("{:?}", client_req_stream.0);
 
         let req_server_stream = send_request.send_request(client_req_stream.0).await?;
@@ -544,7 +544,7 @@ where T: BidiStream<Bytes> {
 
     let server_resp = to_server_stream.recv_response().await?;
 
-    // println!("resp h3");
+    println!("resp h3");
     // println!("{:?}", server_resp);
 
     to_client_stream.send_response(server_resp).await?;
@@ -610,6 +610,9 @@ where T: BidiStream<Bytes> {
 
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
+
+    // let ca_cert_file = "democacert2.pem";
+    // let ca_key_file = "democakey2.pem";
 
     let ca_cert_file = "democacert2.pem";
     let ca_key_file = "democakey2.pem";

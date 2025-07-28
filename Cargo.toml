@@ -17,8 +17,8 @@ name = "main_h1_h2_proxy"
 path = "src/bin/main_h1_h2_proxy.rs"
 
 [[bin]]
-name = "main_h123_raw_proxy"
-path = "src/bin/main_h123_raw_proxy.rs"
+name = "main_h123_proxy_raw"
+path = "src/bin/main_h123_proxy_raw.rs"
 
 # [[bin]]
 # name = "raw_db_to_pb"
