@@ -53,7 +53,10 @@ where
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
 
-    rustls::crypto::ring::default_provider()
+    // rustls::crypto::ring::default_provider()
+    //     .install_default()
+    //     .expect("default provider already set elsewhere");
+    rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .expect("default provider already set elsewhere");
 
@@ -396,7 +399,12 @@ async fn handle_http1_tunnel(
 async fn process_quic_request(endpoint: Endpoint) {
     while let Some(new_conn) = endpoint.accept().await {
         println!("quic accepting connection");
-        tokio::spawn(proxy_quic_connection(new_conn));
+        // tokio::spawn(proxy_quic_connection(new_conn));
+        tokio::spawn(async move {
+            if let Err(e) = proxy_quic_connection(new_conn).await {
+                println!("QUIC connection error: {:?}", e);
+            }
+        });
     }
     endpoint.wait_idle().await;
 }
@@ -443,7 +451,9 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
 
     let h3_quinn_server_conn = h3_quinn::Connection::new(server_conn);
     
+    // let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
     let h3_proxy_conn: h3::server::Connection<h3_quinn::Connection, Bytes>  = h3::server::Connection::new(h3_quinn::Connection::new(proxy_conn)).await?;
+
 
     // let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, dest_addr_str).await;
     let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn).await;
@@ -459,9 +469,12 @@ async fn accept_bi_streams(
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
 
     let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
+    // let drive = async move {
+    //     future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
+    //     Ok::<(), Box<dyn std::error::Error>>(())
+    // };
     let drive = async move {
-        future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
-        Ok::<(), Box<dyn std::error::Error>>(())
+        return Err::<(), h3::error::ConnectionError>(future::poll_fn(|cx| conn_driver.poll_close(cx)).await);
     };
 
     while let Some(client_req_stream) = proxy_conn.accept().await? {
@@ -470,10 +483,12 @@ async fn accept_bi_streams(
         // println!("h3 send request");
         // println!("{:?}", client_req_stream.0);
 
-        let req_server_stream = send_request.send_request(client_req_stream.0).await?;
+        let client_req_0 = client_req_stream.resolve_request().await?;
+
+        let req_server_stream = send_request.send_request(client_req_0.0).await?;
         
         tokio::spawn(
-            handle_tunnel_stream(client_req_stream.1, req_server_stream)
+            handle_tunnel_stream(client_req_0.1, req_server_stream)
         );
     }
 
@@ -611,8 +626,10 @@ where T: BidiStream<Bytes> {
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
 
-    let ca_cert_file = "democacert2.pem";
-    let ca_key_file = "democakey2.pem";
+    // let ca_cert_file = "democacert2.pem";
+    // let ca_key_file = "democakey2.pem";
+    let ca_cert_file = "democacert6.pem";
+    let ca_key_file = "democakey6.pem";
 
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
@@ -636,8 +653,10 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
 
-    let ca_cert_file = "democacert2.pem";
-    let ca_key_file = "democakey2.pem";
+    // let ca_cert_file = "democacert2.pem";
+    // let ca_key_file = "democakey2.pem";
+    let ca_cert_file = "democacert6.pem";
+    let ca_key_file = "democakey6.pem";
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()

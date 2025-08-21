@@ -9,7 +9,8 @@ use std::{fs, sync::Arc};
 use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
 use rustls::sign::CertifiedKey;
 use rustls::server;
-use rustls::crypto::ring::sign;
+// use rustls::crypto::ring::sign;
+use rustls::crypto::aws_lc_rs::sign;
 use rcgen::{BasicConstraints, Certificate, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, KeyPair, KeyUsagePurpose, DnValue::PrintableString,};
 use time::{Duration, OffsetDateTime};
 
@@ -18,7 +19,7 @@ use time::{Duration, OffsetDateTime};
 
 fn validity_period() -> (OffsetDateTime, OffsetDateTime) {
 	// let day = Duration::new(86400, 0);
-    let two_year = Duration::new(86400 * 30 * 2, 0);
+    let two_year = Duration::new(86400 * 30 * 4, 0);
 	let before = OffsetDateTime::now_utc().checked_sub(two_year).unwrap();
 	let after = OffsetDateTime::now_utc().checked_add(two_year).unwrap();
 	(before, after)
@@ -70,12 +71,13 @@ impl DynamicCertResolver {
         // let ca_cert = Certificate::from_der(&ca_der).unwrap();
         let ca_cert_param = CertificateParams::from_ca_cert_der(&ca_der).unwrap();
         let ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
+        // println!("CA cert PEM:\n{}", ca_cert.pem());
 
 
-        // to check the if this cert is same as our ca cert
-        // let pem_serialized = my_ca_cert_new.pem();
-        // let pem = pem::parse(&pem_serialized).unwrap();
-        // fs::write("newcert.pem", pem_serialized.as_bytes()).unwrap();
+        // // to check the if this cert is same as our ca cert
+        // let pem_serialized = ca_cert.pem();
+        // // let _pem = pem::parse(&pem_serialized).unwrap();
+        // fs::write("newcert6.pem", pem_serialized.as_bytes()).unwrap();
 
         DynamicCertResolver {
             ca_cert,
@@ -111,8 +113,14 @@ impl server::ResolvesServerCert for DynamicCertResolver {
         //         rustls::pki_types::PrivatePkcs8KeyDer::from(key_pair.serialize_der()),
         //     ),
         // )
-        let key_pair = KeyPair::generate().unwrap();
+
+        // let key_pair = KeyPair::generate().unwrap();
+        let key_pair = KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256).unwrap();
+        // println!("Generated key algorithm: {:?}", key_pair.algorithm());
+
         let domain_cert = params.signed_by(&key_pair, &self.ca_cert, &self.ca_key).unwrap();
+        // println!("debug_domain_cert.pem: {}", domain_cert.pem());
+
         let pair_key_der = key_pair.serialize_der();
         let pkcs8_key_der = PrivatePkcs8KeyDer::from(pair_key_der.as_slice());
         let private_key_der = PrivateKeyDer::Pkcs8(pkcs8_key_der);
@@ -121,7 +129,8 @@ impl server::ResolvesServerCert for DynamicCertResolver {
         let cert_der = domain_cert.der().clone();
         // ca cert der
         let ca_cert_der = self.ca_cert.der().clone();
-        let cert_der_vec = vec![cert_der, ca_cert_der];
+        // let cert_der_vec = vec![cert_der, ca_cert_der];
+        let cert_der_vec = vec![cert_der];
 
         let certified_key = CertifiedKey::new(cert_der_vec, signing_key);
 
@@ -154,7 +163,11 @@ fn new_ca() -> (Certificate, KeyPair) {
 	params.not_before = before;
 	params.not_after = after;
 
-	let key_pair = KeyPair::generate().unwrap();
+    // ECDSA/RSA will cause different signature because of randomness
+	// let key_pair = KeyPair::generate().unwrap();
+    
+    // take RSA
+    let key_pair = KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256).unwrap();
 
 	(params.self_signed(&key_pair).unwrap(), key_pair)
 }

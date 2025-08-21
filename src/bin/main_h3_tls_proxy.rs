@@ -1,7 +1,7 @@
 use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
 use futures::future;
-use h3::quic::BidiStream;
+use h3::{client, quic::BidiStream};
 
 
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming, TransportConfig};
@@ -259,15 +259,23 @@ async fn accept_bi_streams(
 
     let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
     let drive = async move {
-        future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
-        Ok::<(), Box<dyn std::error::Error>>(())
+        // future::poll_fn(|cx| conn_driver.poll_close(cx)).await?;
+        // Ok::<(), Box<dyn std::error::Error>>(())
+        return Err::<(), h3::error::ConnectionError>(future::poll_fn(|cx| conn_driver.poll_close(cx)).await);
     };
 
     while let Some(client_req_stream) = proxy_conn.accept().await? {
-        println!("h3 client request: {:?}", client_req_stream.0);
-        let mut req_server_stream = send_request.send_request(client_req_stream.0).await?;
+        // println!("h3 client request: {:?}", client_req_stream.0);
+        // let mut req_server_stream = send_request.send_request(client_req_stream.0).await?;
         
-        tokio::spawn(handle_tunnel_stream(client_req_stream.1, req_server_stream));
+        // tokio::spawn(handle_tunnel_stream(client_req_stream.1, req_server_stream));
+
+        let client_req_0 = client_req_stream.resolve_request().await?;
+        println!("h3 client request: {:?}", client_req_0.0);
+        let mut req_server_stream = send_request.send_request(client_req_0.0).await?;
+        
+        tokio::spawn(handle_tunnel_stream(client_req_0.1, req_server_stream));
+
     }
 
     drive.await;

@@ -133,3 +133,44 @@ sudo iptables -t nat -D OUTPUT -p udp --dport 443 -m owner ! --uid-owner proxyus
 
 sudo setcap 'cap_net_bind_service=+ep' target/debug/main_h1_h2_proxy
 sudo -u proxyuser target/debug/main_h1_h2_proxy
+
+this file seems controling ca certificates:
+/etc/ca-certificates.conf
+then put cert into:
+/usr/share/ca-certificates/mozilla
+and do:
+sudo update-ca-certificates --fresh
+use list -l to check under this dir:
+/etc/ssl/certs/
+
+then we do:
+# Create Firefox policies directory
+sudo mkdir -p /etc/firefox/policies
+
+# Create policy to use system certificates
+about:policies#documentation
+sudo tee /etc/firefox/policies/policies.json > /dev/null <<EOF
+{
+  "policies": {
+    "Certificates": {
+      "ImportEnterpriseRoots": true,
+      "Install": ["cert.pem"]
+    }
+  }
+}
+EOF
+
+# Restart Firefox completely
+pkill firefox
+firefox &
+
+when setting policy:
+"DisableSecurityBypass": {
+      "InvalidCertificate": false,
+      "SafeBrowsing": false
+},
+Firefox just disables QUIC
+
+# qlog in pc:
+/tmp/snap-private-tmp/snap.firefox/tmp/
+qlog only show client-server connection event

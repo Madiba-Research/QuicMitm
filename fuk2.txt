@@ -1,0 +1,37 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            71:84:89:0b:d4:eb:0c:6c:f5:1b:69:e9:7c:01:10:26:e1:5e:92:cc
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = rcgen self signed cert, C = CA, O = concordia shaoqi
+        Validity
+            Not Before: Apr 17 02:46:17 2025 GMT
+            Not After : Dec 13 02:46:17 2025 GMT
+        Subject: CN = rcgen self signed cert, C = CA, O = concordia shaoqi
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub:
+                    04:22:32:03:90:f5:dc:0f:9a:b6:a2:21:52:e7:3b:
+                    f4:3a:c1:dc:f8:6d:64:7b:9b:26:81:4c:30:37:74:
+                    e9:f1:c8:29:2b:a8:96:c4:11:51:50:e0:6c:1a:5c:
+                    cc:36:f2:60:2a:9c:de:53:78:01:7c:6b:3a:e1:d1:
+                    e9:be:e1:94:df
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                DNS:localhost, IP Address:127.0.0.1
+            X509v3 Key Usage: critical
+                Digital Signature, Certificate Sign, CRL Sign
+            X509v3 Subject Key Identifier: 
+                04:9B:60:0C:1A:80:D9:41:96:61:47:7C:FF:89:56:5C:BD:EB:2A:39
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+    Signature Algorithm: ecdsa-with-SHA256
+    Signature Value:
+        30:46:02:21:00:8d:51:74:25:e9:22:8a:fa:af:2f:43:41:8a:
+        b1:68:ec:0f:97:86:0a:0f:3d:63:ad:00:fb:f2:7b:52:d8:fd:
+        56:02:21:00:c6:41:a2:77:6e:47:a8:e0:eb:bc:e3:61:0e:9a:
+        f7:06:de:a7:e7:53:bb:67:83:94:d8:36:d9:ed:e2:f5:5b:c8
