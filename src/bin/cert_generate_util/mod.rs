@@ -30,12 +30,25 @@ pub struct DynamicCertResolver {
     // resolver: Arc<dyn server::ResolvesServerCert>,
     ca_cert: Certificate,
     ca_key: KeyPair,
+
+    // properties for logging TLS request to mongodb
     // true for TLS in HTTPS, false for QUIC
     is_tls: bool,
+    db_col: mongodb::Collection<h3server::TlsRequestInMONGODBv2>,
+    app_name: String,
+    with_quic: bool,
 }
 
 impl DynamicCertResolver {
-    pub fn new(ca_cert_name: &str, ca_key_name: &str, is_tls: bool) -> Self {
+    #[allow(dead_code)]
+    pub fn new(
+        ca_cert_name: &str,
+        ca_key_name: &str,
+        is_tls: bool,
+        db_col: mongodb::Collection<h3server::TlsRequestInMONGODBv2>,
+        app_name: String,
+        with_quic: bool,
+    ) -> Self {
 
         if !(Path::new(ca_cert_name).exists() && Path::new(ca_key_name).exists()) {
             let (ca_cert_gen, ca_key_gen) = new_ca();
@@ -84,7 +97,11 @@ impl DynamicCertResolver {
         DynamicCertResolver {
             ca_cert,
             ca_key: ca_key_pair,
+            // properties for logging TLS request to mongodb
             is_tls,
+            db_col,
+            app_name,
+            with_quic,
         }
     }
 }
@@ -97,8 +114,27 @@ impl server::ResolvesServerCert for DynamicCertResolver {
         let domain_name = client_hello.server_name()?;
         println!("requesting domain name: {}", domain_name);
 
+        let now = std::time::SystemTime::now();
+        let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+            .expect("Time went backwards");
+        let millis = duration_since_epoch.as_millis() as u64;
+
         // write tls request record to mongodb
-        
+        let tls_record = h3server::TlsRequestInMONGODBv2 {
+            _id: None,
+            app: self.app_name.clone(),
+            withquic: self.with_quic.clone(),
+            is_tls: self.is_tls,
+            domain_name: domain_name.to_string(),
+            timestamp: millis,
+        };
+        let db_col = self.db_col.clone();
+        tokio::spawn(async move {
+            match db_col.insert_one(tls_record).await {
+                Ok(rst) => { println!("insert rst: {:?}", rst) },
+                Err(e) => { println!("insert err: {}", e) },
+            }
+        });
 
         let mut params = CertificateParams::new(vec![domain_name.into()])
             .expect("we know the name is valid");
@@ -183,6 +219,136 @@ fn new_ca() -> (Certificate, KeyPair) {
 impl fmt::Debug for DynamicCertResolver {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("DynamicCertResolver")
+            // skip the Certificate debug as it doesn' implement the Debug trait
+            // .field("ca_cert", &self.ca_cert)
+            .field("ca_key", &self.ca_key).finish()
+    }
+}
+
+
+
+// the earlier certificate resolver
+pub struct SimpleDynamicCertResolver {
+    // resolver: Arc<dyn server::ResolvesServerCert>,
+    ca_cert: Certificate,
+    ca_key: KeyPair,
+}
+
+impl SimpleDynamicCertResolver {
+    #[allow(dead_code)]
+    pub fn new(
+        ca_cert_name: &str,
+        ca_key_name: &str,
+    ) -> Self {
+
+        if !(Path::new(ca_cert_name).exists() && Path::new(ca_key_name).exists()) {
+            let (ca_cert_gen, ca_key_gen) = new_ca();
+
+            fs::write(ca_key_name, ca_key_gen.serialize_pem()).unwrap();
+            let ca_cert_gen_pem = ca_cert_gen.pem();
+            fs::write(ca_cert_name, ca_cert_gen_pem).unwrap();
+
+            panic!("CA certificate and private key have been generated, please import into browser!!!");
+        }
+
+        println!("Using existed CA certificate and CA private key");
+        // read ca key pem
+        let ca_key_pem = fs::read_to_string(ca_key_name).unwrap();
+        let ca_key_pair = KeyPair::from_pem(&ca_key_pem).unwrap();
+        
+        // read ca cert pem, with from_ca_cert_pem
+        // let ca_cert_pem = fs::read_to_string(ca_cert_name).unwrap();
+        // let ca_cert_param = CertificateParams::from_ca_cert_pem(&ca_cert_pem).unwrap();
+
+        let ca_der = rustls_pemfile::certs(&mut BufReader::new(&mut File::open(ca_cert_name).unwrap()))
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .first()
+            .unwrap()
+            .clone();
+
+        // let ca_pub_key_info = ca_key_pair.public_key_der();
+
+        // generate cert from cert param
+        // https://docs.rs/rcgen/latest/rcgen/struct.Certificate.html
+        // let my_ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
+        // let my_ca_cert = Certificate::new(ca_cert_param, ca_pub_key_info, ca_der);
+        
+        // let ca_cert = Certificate::from_der(&ca_der).unwrap();
+        let ca_cert_param = CertificateParams::from_ca_cert_der(&ca_der).unwrap();
+        let ca_cert = ca_cert_param.self_signed(&ca_key_pair).unwrap();
+        // println!("CA cert PEM:\n{}", ca_cert.pem());
+
+
+        // // to check the if this cert is same as our ca cert
+        // let pem_serialized = ca_cert.pem();
+        // // let _pem = pem::parse(&pem_serialized).unwrap();
+        // fs::write("newcert6.pem", pem_serialized.as_bytes()).unwrap();
+
+        SimpleDynamicCertResolver {
+            ca_cert,
+            ca_key: ca_key_pair,
+        }
+    }
+}
+
+
+impl server::ResolvesServerCert for SimpleDynamicCertResolver {
+    fn resolve(&self, client_hello: server::ClientHello<'_>) -> Option<Arc<rustls::sign::CertifiedKey>> {
+        
+        // generate domain cert
+        let domain_name = client_hello.server_name()?;
+        println!("requesting domain name: {}", domain_name);
+
+        let mut params = CertificateParams::new(vec![domain_name.into()])
+            .expect("we know the name is valid");
+        let (yesterday, tomorrow) = validity_period();
+        params.distinguished_name.push(DnType::CommonName, domain_name);
+        params.use_authority_key_identifier_extension = true;
+        params.key_usages.push(KeyUsagePurpose::DigitalSignature);
+        params
+            .extended_key_usages
+            .push(ExtendedKeyUsagePurpose::ServerAuth);
+        params.not_before = yesterday;
+        params.not_after = tomorrow;
+
+        // let key_pair = rcgen::KeyPair::generate().unwrap();
+        // let cert = params.self_signed(&key_pair).unwrap();
+
+        // let signer = crypto::ring::sign::any_supported_type(
+        //     &rustls::pki_types::PrivateKeyDer::from(
+        //         rustls::pki_types::PrivatePkcs8KeyDer::from(key_pair.serialize_der()),
+        //     ),
+        // )
+
+        // let key_pair = KeyPair::generate().unwrap();
+        let key_pair = KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256).unwrap();
+        // println!("Generated key algorithm: {:?}", key_pair.algorithm());
+
+        let domain_cert = params.signed_by(&key_pair, &self.ca_cert, &self.ca_key).unwrap();
+        // println!("debug_domain_cert.pem: {}", domain_cert.pem());
+
+        let pair_key_der = key_pair.serialize_der();
+        let pkcs8_key_der = PrivatePkcs8KeyDer::from(pair_key_der.as_slice());
+        let private_key_der = PrivateKeyDer::Pkcs8(pkcs8_key_der);
+        let signing_key = sign::any_supported_type(&private_key_der).unwrap();
+        // https://docs.rs/rustls/latest/rustls/pki_types/struct.CertificateDer.html
+        let cert_der = domain_cert.der().clone();
+        // ca cert der
+        // let ca_cert_der = self.ca_cert.der().clone();
+        // let cert_der_vec = vec![cert_der, ca_cert_der];
+        let cert_der_vec = vec![cert_der];
+
+        let certified_key = CertifiedKey::new(cert_der_vec, signing_key);
+
+        Some(Arc::new(certified_key))
+    }
+}
+
+
+impl fmt::Debug for SimpleDynamicCertResolver {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SimpleDynamicCertResolver")
             // skip the Certificate debug as it doesn' implement the Debug trait
             // .field("ca_cert", &self.ca_cert)
             .field("ca_key", &self.ca_key).finish()

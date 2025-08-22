@@ -632,7 +632,7 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
     // println!("reading cert files");
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, true)));
+        .with_cert_resolver(Arc::new(cert_generate_util::SimpleDynamicCertResolver::new(ca_cert_file, ca_key_file)));
     // println!("after reading cert files");
     // let s_cert_file = std::fs::read("democacert2.der")?;
     // let s_cert = vec![CertificateDer::from(s_cert_file)];
@@ -658,7 +658,7 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, false)));
+        .with_cert_resolver(Arc::new(cert_generate_util::SimpleDynamicCertResolver::new(ca_cert_file, ca_key_file)));
 
     
     config.alpn_protocols= vec![HTTP3.to_vec()];

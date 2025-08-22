@@ -191,3 +191,7 @@ with cert: democacert6, which is applied with **`sha256WithRSAEncryption`**, rat
 ### To capture tls error for https and quic:
 there is no way to take the ClientHello SNI from the failed handshake. Therefore we record all tls connection, and then compare them with succussful connection. The remaining are failed connection.
 
+To test main_h1_h2_h3_proxy, with arguement:
+sudo ./target/debug/main_h1_h2_h3_proxy h2h3_flag app_name
+h2h3_flag set as h2 (when only tcp allow) or h2h3 (when both tcp and udp allow)
+

@@ -321,7 +321,7 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, true)));
+        .with_cert_resolver(Arc::new(cert_generate_util::SimpleDynamicCertResolver::new(ca_cert_file, ca_key_file)));
 
 
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
@@ -339,7 +339,7 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file,false)));
+        .with_cert_resolver(Arc::new(cert_generate_util::SimpleDynamicCertResolver::new(ca_cert_file, ca_key_file)));
 
     
     config.alpn_protocols= vec![HTTP3.to_vec()];

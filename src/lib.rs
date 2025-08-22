@@ -44,7 +44,7 @@ pub struct TlsRequestInMONGODBv2 {
 
     pub app: String,
     pub withquic: bool,
-    pub dest_addr: String,
+    pub domain_name: String,
     /// if is_tls is false, then it is a quic handshake
     pub is_tls: bool,
     pub timestamp: u64,

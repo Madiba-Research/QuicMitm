@@ -102,22 +102,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         return Ok(());
     }
 
-    // rustls::crypto::ring::default_provider()
-    //     .install_default()
-    //     .expect("default provider already set elsewhere");
-    rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .expect("default provider already set elsewhere");
-
-
-    // for tcp usage
-    let tcp_tls_acceptor = get_h2_config()?;
-
-    // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
-    // let tcp_listener = TcpListener::bind("172.30.143.51:443").await?;
-    let tcp_listener = TcpListener::bind("0.0.0.0:443").await?;
-    println!("Tcp binding finished");
-
+    // Set USING_QUIC early, before any config functions are called
+    if args[1] == "h2h3" {
+        USING_QUIC.set(true)?;
+    } else {
+        USING_QUIC.set(false)?;
+    }
 
     PACKAGE_NAME.set(args[2].to_string()).expect("Failed to set package_name for current proxy work");
 
@@ -127,10 +117,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let millis = duration_since_epoch.as_millis() as u64;
     SESSION_TIMESTAMP.set(millis).expect("Failed to set the session timestamp");
 
+    // rustls::crypto::ring::default_provider()
+    //     .install_default()
+    //     .expect("default provider already set elsewhere");
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("default provider already set elsewhere");
+
+
+    // for tcp usage
+    let tcp_tls_acceptor = get_h2_config().await?;
+
+    // let tcp_listener = TcpListener::bind("127.0.0.1:443").await?;
+    // let tcp_listener = TcpListener::bind("172.30.143.51:443").await?;
+    let tcp_listener = TcpListener::bind("0.0.0.0:443").await?;
+    println!("Tcp binding finished");
+
+    // PACKAGE_NAME.set(args[2].to_string()).expect("Failed to set package_name for current proxy work");
+
+    // let now = std::time::SystemTime::now();
+    // let duration_since_epoch = now.duration_since(std::time::UNIX_EPOCH)
+    //     .expect("Time went backwards");
+    // let millis = duration_since_epoch.as_millis() as u64;
+    // SESSION_TIMESTAMP.set(millis).expect("Failed to set the session timestamp");
+
     if args[1] == "h2h3" {
-        USING_QUIC.set(true)?;
+        // USING_QUIC.set(true)?;
         // set tls for quic
-        let server_config = get_h3_config()?;
+        let server_config = get_h3_config().await?;
         let endpoint = quinn::Endpoint::server(
             server_config,
             // SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 443),
@@ -144,11 +158,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         let quic_task = tokio::spawn(process_quic_request(endpoint));
         let _ = tokio::join!(tcp_tls_task, quic_task);
     } else {
-        USING_QUIC.set(false)?;
+        // USING_QUIC.set(false)?;
         let tcp_tls_task = tokio::spawn(process_tcp_request(tcp_listener, tcp_tls_acceptor));
         let _ = tcp_tls_task.await;
     }
-
 
     Ok(())
 }
@@ -748,7 +761,7 @@ where T: BidiStream<Bytes> {
         _id: None,
         source_addr: source_addr_str,
         dest_addr: dest_addr_str,
-        is_tls: true,
+        is_tls: false,
         timestamp: millis,
     };
     
@@ -900,17 +913,32 @@ where T: BidiStream<Bytes> {
 
 
 
-fn get_h2_config() -> io::Result<TlsAcceptor> {
+async fn get_h2_config() -> io::Result<TlsAcceptor> {
 
     // let ca_cert_file = "democacert2.pem";
     // let ca_key_file = "democakey2.pem";
     let ca_cert_file = "democacert6.pem";
     let ca_key_file = "democakey6.pem";
 
+    let db_col = get_database().await.collection("tlsreq2");
+
+    let mut package_name = String::new();
+    if let Some(p) = PACKAGE_NAME.get() {
+        package_name = p.clone();
+    }
+
+    let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
+
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, true)));
-
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(
+            ca_cert_file,
+            ca_key_file,
+            true,
+            db_col,
+            package_name,
+            using_quic.clone(),
+        )));
 
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
 
@@ -920,19 +948,34 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 }
 
 
-fn get_h3_config() -> io::Result<quinn::ServerConfig> {
+async fn get_h3_config() -> io::Result<quinn::ServerConfig> {
 
     // let ca_cert_file = "democacert2.pem";
     // let ca_key_file = "democakey2.pem";
     let ca_cert_file = "democacert6.pem";
     let ca_key_file = "democakey6.pem";
+
+    let db_col = get_database().await.collection("tlsreq2");
+
+    let mut package_name = String::new();
+    if let Some(p) = PACKAGE_NAME.get() {
+        package_name = p.clone();
+    }
+
+    let using_quic = USING_QUIC.get().expect("cannot decide USING_H3");
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, false)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(
+            ca_cert_file,
+            ca_key_file,
+            false,
+            db_col,
+            package_name,
+            using_quic.clone(),
+        )));
 
-    
-    config.alpn_protocols= vec![HTTP3.to_vec()];
+    config.alpn_protocols = vec![HTTP3.to_vec()];
 
     let quinn_server_config =
         quinn::ServerConfig::with_crypto(Arc::new(QuicServerConfig::try_from(config).unwrap()));
