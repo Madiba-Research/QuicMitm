@@ -1,7 +1,8 @@
 use base64::{prelude::BASE64_STANDARD, Engine};
 use flate2::read::GzDecoder;
 // use regex::Regex;
-use serde::{ser, Deserialize, Serialize};
+// use serde::{ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{io::Read, str::FromStr};
 
 use crate::db::{EventDrivenJob, TimeDrivenJob};

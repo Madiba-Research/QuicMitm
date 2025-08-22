@@ -1,87 +1,87 @@
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
-use tracing_subscriber::fmt::format;
+// use tracing_subscriber::fmt::format;
 
-const LEAK_ITEMS: [(&str, &str); 29] = [
-    // ("imei", "IMEI"),
-    // ("serial", "Device Serial"),
-    ("device_id", "Device ID"),
-    ("adid", "Advertising ID"),
-    ("bootloader", "Bootloader"),
-    ("finger_print", "Fingerprint"),
-    ("cpu", "CPU Model"),
-    ("displayid", "Display ID"),
-    ("device_name", "Device Name"),
-    ("resolution", "Device Resolution"),
-    ("abi", "Device ABI"),
-    ("model", "Device Model"),
-    ("timezone", "Device Timezone"),
-    ("operator", "Operator"),
-    // ("iccid", "ICCID"),
-    // ("imsi", "IMSI"),
-    ("wifi_ip", "Device WiFi IP"),
-    ("wifi_ipv6", "Device WiFi IPv6"),
-    ("gateway", "Default Gateway IP"),
-    ("proxy_addr", "On Device Proxy Address"),
-    ("my_wifi_essid", "Router ESSID"),
-    ("my_wifi_bssid", "Router BSSID"),
-    ("other_wifi_essid", "Neighbor Router ESSID"),
-    ("other_wifi_bssid", "Neighbor Router BSSID"),
-    ("gps4", "GPS ($\\leq$7 meter accuracy)"),
-    ("gps3", "GPS (78 meter accuracy)"),
-    ("gps2", "GPS (787 meter accuracy)"),
-    ("device_apps", "List of Device Apps"),
-    ("phone_number", "Phone Number"),
-    ("call_history_number", "Call History Number"),
-    ("contact_name", "Contacts Name"),
-    ("contact_phone", "Contacts Number"),
-    ("email", "Device Email"),
-];
+// const LEAK_ITEMS: [(&str, &str); 29] = [
+//     // ("imei", "IMEI"),
+//     // ("serial", "Device Serial"),
+//     ("device_id", "Device ID"),
+//     ("adid", "Advertising ID"),
+//     ("bootloader", "Bootloader"),
+//     ("finger_print", "Fingerprint"),
+//     ("cpu", "CPU Model"),
+//     ("displayid", "Display ID"),
+//     ("device_name", "Device Name"),
+//     ("resolution", "Device Resolution"),
+//     ("abi", "Device ABI"),
+//     ("model", "Device Model"),
+//     ("timezone", "Device Timezone"),
+//     ("operator", "Operator"),
+//     // ("iccid", "ICCID"),
+//     // ("imsi", "IMSI"),
+//     ("wifi_ip", "Device WiFi IP"),
+//     ("wifi_ipv6", "Device WiFi IPv6"),
+//     ("gateway", "Default Gateway IP"),
+//     ("proxy_addr", "On Device Proxy Address"),
+//     ("my_wifi_essid", "Router ESSID"),
+//     ("my_wifi_bssid", "Router BSSID"),
+//     ("other_wifi_essid", "Neighbor Router ESSID"),
+//     ("other_wifi_bssid", "Neighbor Router BSSID"),
+//     ("gps4", "GPS ($\\leq$7 meter accuracy)"),
+//     ("gps3", "GPS (78 meter accuracy)"),
+//     ("gps2", "GPS (787 meter accuracy)"),
+//     ("device_apps", "List of Device Apps"),
+//     ("phone_number", "Phone Number"),
+//     ("call_history_number", "Call History Number"),
+//     ("contact_name", "Contacts Name"),
+//     ("contact_phone", "Contacts Number"),
+//     ("email", "Device Email"),
+// ];
 
-const DEVICE_INFO: [&str; 13] = [
-    "imei",
-    "serial",
-    "device_id",
-    "adid",
-    "bootloader",
-    "finger_print",
-    "cpu",
-    "displayid",
-    "device_name",
-    "resolution",
-    "abi",
-    "model",
-    "timezone",
-];
+// const DEVICE_INFO: [&str; 13] = [
+//     "imei",
+//     "serial",
+//     "device_id",
+//     "adid",
+//     "bootloader",
+//     "finger_print",
+//     "cpu",
+//     "displayid",
+//     "device_name",
+//     "resolution",
+//     "abi",
+//     "model",
+//     "timezone",
+// ];
 
-const NETWORK_INFO: [&str; 7] = [
-    "operator",
-    "iccid",
-    "imsi",
-    "wifi_ip",
-    "wifi_ipv6",
-    "gateway",
-    "proxy_addr",
-];
+// const NETWORK_INFO: [&str; 7] = [
+//     "operator",
+//     "iccid",
+//     "imsi",
+//     "wifi_ip",
+//     "wifi_ipv6",
+//     "gateway",
+//     "proxy_addr",
+// ];
 
-const NETWORK_LOCATION_INFO: [&str; 4] = [
-    "my_wifi_essid",
-    "my_wifi_bssid",
-    "other_wifi_essid",
-    "other_wifi_bssid",
-];
+// const NETWORK_LOCATION_INFO: [&str; 4] = [
+//     "my_wifi_essid",
+//     "my_wifi_bssid",
+//     "other_wifi_essid",
+//     "other_wifi_bssid",
+// ];
 
-const LOCATION_INFO: [&str; 3] = ["gps4", "gps3", "gps2"];
+// const LOCATION_INFO: [&str; 3] = ["gps4", "gps3", "gps2"];
 
-const USER_ASSETS: [&str; 6] = [
-    "device_apps",
-    "phone_number",
-    "call_history_number",
-    "contact_name",
-    "contact_phone",
-    "email",
-];
+// const USER_ASSETS: [&str; 6] = [
+//     "device_apps",
+//     "phone_number",
+//     "call_history_number",
+//     "contact_name",
+//     "contact_phone",
+//     "email",
+// ];
 
 
 #[tokio::main]

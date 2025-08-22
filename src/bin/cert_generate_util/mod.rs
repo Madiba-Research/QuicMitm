@@ -30,10 +30,12 @@ pub struct DynamicCertResolver {
     // resolver: Arc<dyn server::ResolvesServerCert>,
     ca_cert: Certificate,
     ca_key: KeyPair,
+    // true for TLS in HTTPS, false for QUIC
+    is_tls: bool,
 }
 
 impl DynamicCertResolver {
-    pub fn new(ca_cert_name: &str, ca_key_name: &str) -> Self {
+    pub fn new(ca_cert_name: &str, ca_key_name: &str, is_tls: bool) -> Self {
 
         if !(Path::new(ca_cert_name).exists() && Path::new(ca_key_name).exists()) {
             let (ca_cert_gen, ca_key_gen) = new_ca();
@@ -82,6 +84,7 @@ impl DynamicCertResolver {
         DynamicCertResolver {
             ca_cert,
             ca_key: ca_key_pair,
+            is_tls,
         }
     }
 }
@@ -93,6 +96,10 @@ impl server::ResolvesServerCert for DynamicCertResolver {
         // generate domain cert
         let domain_name = client_hello.server_name()?;
         println!("requesting domain name: {}", domain_name);
+
+        // write tls request record to mongodb
+        
+
         let mut params = CertificateParams::new(vec![domain_name.into()])
             .expect("we know the name is valid");
         let (yesterday, tomorrow) = validity_period();
@@ -128,7 +135,7 @@ impl server::ResolvesServerCert for DynamicCertResolver {
         // https://docs.rs/rustls/latest/rustls/pki_types/struct.CertificateDer.html
         let cert_der = domain_cert.der().clone();
         // ca cert der
-        let ca_cert_der = self.ca_cert.der().clone();
+        // let ca_cert_der = self.ca_cert.der().clone();
         // let cert_der_vec = vec![cert_der, ca_cert_der];
         let cert_der_vec = vec![cert_der];
 

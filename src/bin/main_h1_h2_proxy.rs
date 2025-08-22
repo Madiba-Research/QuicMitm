@@ -1,7 +1,8 @@
 use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 
 use futures::future;
-use h3::{client, quic::BidiStream};
+// use h3::{client, quic::BidiStream};
+use h3::quic::BidiStream;
 
 // use h3server::create_http_request_type;
 use http_body_util::BodyExt;
@@ -10,7 +11,9 @@ use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
 // use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
-use rustls::{pki_types::{self, CertificateDer, PrivateKeyDer}, RootCertStore, ServerConfig};
+// use rustls::{pki_types::{self, CertificateDer, PrivateKeyDer}, RootCertStore, ServerConfig};
+use rustls::{pki_types, RootCertStore, ServerConfig};
+
 
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
@@ -97,7 +100,7 @@ async fn process_tcp_request(
         // tokio::spawn(proxy_tcp_tls_naive(tcp_stream, tls_acceptor_clone));
     }
 
-    Ok(())
+    // Ok(())
 }
 
 
@@ -629,7 +632,7 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
     // println!("reading cert files");
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, true)));
     // println!("after reading cert files");
     // let s_cert_file = std::fs::read("democacert2.der")?;
     // let s_cert = vec![CertificateDer::from(s_cert_file)];
@@ -655,7 +658,7 @@ fn get_h3_config() -> io::Result<quinn::ServerConfig> {
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, false)));
 
     
     config.alpn_protocols= vec![HTTP3.to_vec()];

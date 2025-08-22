@@ -3,19 +3,22 @@ use std::{io, net::{IpAddr, Ipv4Addr, SocketAddr}, str::FromStr, sync::Arc};
 use futures::future;
 use h3::quic::BidiStream;
 
-use h3server::{headers_to_hashmap, version_to_string, ConnectionInfoInMONGODBv2, RecordInMONGODBv2, RequestInMONGO, RequestInMONGOv2};
+use h3server::{headers_to_hashmap, version_to_string, ConnectionInfoInMONGODBv2, RecordInMONGODBv2, RequestInMONGOv2};
 // use h3server::create_http_request_type;
-use http::{request::Parts, Response};
+// use http::{request::Parts, Response};
+use http::request::Parts;
 use http_body_util::BodyExt;
 // use http_body_util::Full;
 use hyper::{server::conn::http1, server::conn::http2, service::service_fn};
 use hyper_util::rt::TokioIo;
-use mongodb::{change_stream::session, options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
+// use mongodb::{change_stream::session, options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
+use mongodb::{options::{ClientOptions, ServerApi, ServerApiVersion}, Client, Database};
+
 // use prost::Message;
 use quinn::{crypto::rustls::QuicServerConfig, Endpoint, Incoming};
 use rustls::{pki_types::{self}, RootCertStore, ServerConfig};
 
-use time::OffsetDateTime;
+// use time::OffsetDateTime;
 use tokio::{net::{TcpListener, TcpStream}, sync::OnceCell};
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio::io::{split, copy};
@@ -73,7 +76,8 @@ async fn get_mongo_client() -> Arc<Client> {
 async fn get_database() -> Database {
     // get_mongo_client().await.database("requestdb")
     // get_mongo_client().await.database("requestdb2")
-    get_mongo_client().await.database("requestdb10")
+    // get_mongo_client().await.database("requestdb10")
+    get_mongo_client().await.database("requestdb20")
 }
 
 static USING_QUIC: OnceCell<bool> = OnceCell::const_new();
@@ -98,7 +102,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         return Ok(());
     }
 
-    rustls::crypto::ring::default_provider()
+    // rustls::crypto::ring::default_provider()
+    //     .install_default()
+    //     .expect("default provider already set elsewhere");
+    rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .expect("default provider already set elsewhere");
 
@@ -158,7 +165,7 @@ async fn process_tcp_request(
         // tokio::spawn(proxy_tcp_tls_naive(tcp_stream, tls_acceptor_clone));
     }
 
-    Ok(())
+    // Ok(())
 }
 
 
@@ -254,7 +261,9 @@ async fn proxy_tcp_tls(
             }
         }
 
-        Err(e) => { println!("TLS accepted error on tcp: {}", e); }
+        Err(e) => {
+            println!("TLS accepted error on tcp: {}", e);
+        }
     }
 
     Ok(())
@@ -321,6 +330,7 @@ async fn handle_http2_tunnel(
         app: package_name,
         withquic: using_quic.clone(),
         time_stamp: session_timestamp.clone(),
+        conn_id: 0,
     };
 
     // let now = OffsetDateTime::now_utc();
@@ -454,6 +464,7 @@ async fn handle_http1_tunnel(
         app: package_name,
         withquic: using_quic.clone(),
         time_stamp: session_timestamp.clone(),
+        conn_id: 0,
     };
 
     // let now = OffsetDateTime::now_utc();
@@ -563,7 +574,14 @@ async fn handle_http1_tunnel(
 async fn process_quic_request(endpoint: Endpoint) {
     while let Some(new_conn) = endpoint.accept().await {
         println!("quic accepting connection");
-        tokio::spawn(proxy_quic_connection(new_conn));
+        // tokio::spawn(proxy_quic_connection(new_conn));
+
+        tokio::spawn(async move {
+            if let Err(e) = proxy_quic_connection(new_conn).await {
+                println!("quic connection error: {}", e);
+                // todo: write error into mongodb
+            }
+        });
     }
     endpoint.wait_idle().await;
 }
@@ -572,6 +590,31 @@ async fn process_quic_request(endpoint: Endpoint) {
 async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let proxy_conn = conn.await?;
+
+    // todo: write connection id into mongodb
+    let proxy_conn_id = proxy_conn.stable_id();
+
+    // let proxy_conn_clone = proxy_conn.clone();
+    // let close_monitor = tokio::spawn(async move {
+    //     let close_reason = proxy_conn_clone.closed().await;
+    //     match close_reason {
+    //         // todo: write error into mongodb
+    //         quinn::ConnectionError::ConnectionClosed(close_frame) => {
+    //             println!("🔌 Connection {} closed by peer:", proxy_conn_id);
+    //             println!("   Error code: {:?}", close_frame.error_code);
+    //             println!("   Reason: {}", String::from_utf8_lossy(&close_frame.reason));
+    //         }
+    //         quinn::ConnectionError::ApplicationClosed(app_close) => {
+    //             println!("📱 Connection {} closed by application: error={}, reason={}", 
+    //                 proxy_conn_id,
+    //                 app_close.error_code, 
+    //                 String::from_utf8_lossy(&app_close.reason));
+    //         }
+    //         other => {
+    //             println!("💥 Connection {} lost: {:?}", proxy_conn_id, other);
+    //         }
+    //     }
+    // });
 
     let source_addr_str = proxy_conn.remote_address().to_string();
 
@@ -616,8 +659,10 @@ async fn proxy_quic_connection(conn: Incoming) -> Result<(), Box<dyn std::error:
         .await?;
 
     // let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, dest_addr_str).await;
-    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, server_domain_port.clone()).await;
+    let _ = accept_bi_streams(h3_proxy_conn, h3_quinn_server_conn, source_addr_str, server_domain_port.clone(), proxy_conn_id).await;
     
+    // close_monitor.abort();
+
     proxy_endpoint.wait_idle().await;
     Ok(())
 }
@@ -628,6 +673,7 @@ async fn accept_bi_streams(
     h3_quinn_server_conn: h3_quinn::Connection,
     source_addr_str: String,
     dest_addr_str: String,
+    proxy_conn_id: usize,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
 
     let (mut conn_driver, mut send_request) = h3::client::new(h3_quinn_server_conn).await?;
@@ -656,9 +702,9 @@ async fn accept_bi_streams(
         // );
 
         let req_server_stream = send_request.send_request(client_req_0.0).await?;
-
+        let conn_id_clone = proxy_conn_id.clone();
         tokio::spawn(
-            handle_tunnel_stream(client_req_0.1, req_server_stream, req_parts, source_addr_str.clone(), dest_addr_str.clone())
+            handle_tunnel_stream(client_req_0.1, req_server_stream, req_parts, source_addr_str.clone(), dest_addr_str.clone(), conn_id_clone)
         );
     }
 
@@ -678,6 +724,7 @@ async fn handle_tunnel_stream<T>(
     client_req_parts: Parts,
     source_addr_str: String,
     dest_addr_str: String,
+    proxy_conn_id: usize,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>>
 where T: BidiStream<Bytes> {
 
@@ -737,6 +784,7 @@ where T: BidiStream<Bytes> {
         app: package_name,
         withquic: using_quic.clone(),
         time_stamp: session_timestamp.clone(),
+        conn_id: proxy_conn_id,
     };
 
     // let now = OffsetDateTime::now_utc();
@@ -854,12 +902,14 @@ where T: BidiStream<Bytes> {
 
 fn get_h2_config() -> io::Result<TlsAcceptor> {
 
-    let ca_cert_file = "democacert2.pem";
-    let ca_key_file = "democakey2.pem";
+    // let ca_cert_file = "democacert2.pem";
+    // let ca_key_file = "democakey2.pem";
+    let ca_cert_file = "democacert6.pem";
+    let ca_key_file = "democakey6.pem";
 
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, true)));
 
 
     config.alpn_protocols= vec![H2.to_vec(), HTTP1_1.to_vec()];
@@ -872,12 +922,14 @@ fn get_h2_config() -> io::Result<TlsAcceptor> {
 
 fn get_h3_config() -> io::Result<quinn::ServerConfig> {
 
-    let ca_cert_file = "democacert2.pem";
-    let ca_key_file = "democakey2.pem";
+    // let ca_cert_file = "democacert2.pem";
+    // let ca_key_file = "democakey2.pem";
+    let ca_cert_file = "democacert6.pem";
+    let ca_key_file = "democakey6.pem";
     
     let mut config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file)));
+        .with_cert_resolver(Arc::new(cert_generate_util::DynamicCertResolver::new(ca_cert_file, ca_key_file, false)));
 
     
     config.alpn_protocols= vec![HTTP3.to_vec()];

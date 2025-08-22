@@ -38,6 +38,20 @@ pub mod leak;
 
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct TlsRequestInMONGODBv2 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _id: Option<ObjectId>,
+
+    pub app: String,
+    pub withquic: bool,
+    pub dest_addr: String,
+    /// if is_tls is false, then it is a quic handshake
+    pub is_tls: bool,
+    pub timestamp: u64,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RecordInMONGODBv2 {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub _id: Option<ObjectId>,
@@ -51,6 +65,9 @@ pub struct RecordInMONGODBv2 {
     pub withquic: bool,
 
     pub time_stamp: u64,
+
+    // 0 for tls, positive number for quic
+    pub conn_id: usize,
 }
 
 
@@ -140,10 +157,14 @@ pub fn headers_to_hashmap(headers: &http::HeaderMap) -> HashMap<String, String> 
     
     for (key, value) in headers.iter() {
         // Convert HeaderName to String and HeaderValue to String
-        if let Ok(key_str) = key.to_string().parse::<String>() {
-            if let Ok(value_str) = value.to_str() {
-                hashmap.insert(key_str, value_str.to_string());
-            }
+        // if let Ok(key_str) = key.to_string().parse::<String>() {
+        //     if let Ok(value_str) = value.to_str() {
+        //         hashmap.insert(key_str, value_str.to_string());
+        //     }
+        // }
+        let key_str = key.to_string();
+        if let Ok(value_str) = value.to_str() {
+            hashmap.insert(key_str, value_str.to_string());
         }
     }
     

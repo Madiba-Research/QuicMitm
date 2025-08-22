@@ -1,22 +1,24 @@
 // use std::collections::HashMap;
 
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
 use futures::StreamExt;
 use h3server::RequestInMONGO;
 // use http::HeaderMap;
-use mongodb::{ bson::{doc, oid::ObjectId}, options::{ ClientOptions, FindOptions, ServerApi, ServerApiVersion }, Client, Collection };
+// use mongodb::{ bson::{doc, oid::ObjectId}, options::{ ClientOptions, FindOptions, ServerApi, ServerApiVersion }, Client, Collection };
+use mongodb::{ bson::doc, options::{ ClientOptions, FindOptions, ServerApi, ServerApiVersion }, Client, Collection };
+
 // use serde::{Deserialize, Serialize};
 // use tokio::fs::File;
 // use tokio::io::AsyncWriteExt; // for write_all()
 
 
-fn hashmap_contain_word(h_map: &HashMap<String, String>) -> bool {
-    if let Some(encode_type) = h_map.get("content-encoding") {
-        return true;
-    }
-    false
-}
+// fn hashmap_contain_word(h_map: &HashMap<String, String>) -> bool {
+//     if let Some(encode_type) = h_map.get("content-encoding") {
+//         return true;
+//     }
+//     false
+// }
 
 
 

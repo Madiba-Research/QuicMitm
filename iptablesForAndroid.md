@@ -122,7 +122,7 @@ Finally, before running the experiment:
 To make sure every app runs well: In Password & account, turn off those options, (i.e., offer to save password)
 
 
-For browser:
+# For browser:
 sudo useradd -r -s /bin/false proxyuser
 id proxyuser
 sudo iptables -t nat -A OUTPUT -p tcp --dport 443 -m owner ! --uid-owner proxyuser -j REDIRECT --to-port 443
@@ -133,6 +133,7 @@ sudo iptables -t nat -D OUTPUT -p udp --dport 443 -m owner ! --uid-owner proxyus
 
 sudo setcap 'cap_net_bind_service=+ep' target/debug/main_h1_h2_proxy
 sudo -u proxyuser target/debug/main_h1_h2_proxy
+
 
 this file seems controling ca certificates:
 /etc/ca-certificates.conf
@@ -174,3 +175,19 @@ Firefox just disables QUIC
 # qlog in pc:
 /tmp/snap-private-tmp/snap.firefox/tmp/
 qlog only show client-server connection event
+
+# A reason for chromium
+
+Chromium's dependency (v113):
+for quic: Chromium -> Quiche -> Boringssl (a version from 2018)
+for https: Chromium -> Boringssl (a version from 2014)
+
+## on Aug 21:
+### CA Certificate preparation
+we stop here for browser study, and only focus on mobile app test.
+Proxy based on main_h1_h2_h3_proxy.rs
+with cert: democacert6, which is applied with **`sha256WithRSAEncryption`**, rather than rcgen default **`ecdsa-with-SHA256`**. As we observed from browser, which has randomness, introduced into certificate signature, in each certificate generation. A strange thing is that our phone ignore this discrepancy.
+
+### To capture tls error for https and quic:
+there is no way to take the ClientHello SNI from the failed handshake. Therefore we record all tls connection, and then compare them with succussful connection. The remaining are failed connection.
+
