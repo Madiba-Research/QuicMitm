@@ -55,13 +55,6 @@ exit
 
 
 
-app account:
-shaoqi.test@gmail.com
-app passwords:
-asd123
-asd1230-
-
-
 for http request header, and possible value:
 content-encoding:
 {"deflate", "union_sdk_encode", "identity", "br", "amz-1.0", "zstd", "msl_v1", "gzip"}
